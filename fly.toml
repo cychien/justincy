@@ -1,0 +1,16 @@
+app = 'justincy'
+primary_region = 'nrt'
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_start_machines = true
+  # Suspend rather than stop: the machine resumes from a memory snapshot, so an
+  # idle site wakes in milliseconds instead of paying a cold Node boot.
+  auto_stop_machines = 'suspend'
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  size = 'shared-cpu-1x'
+  memory = '512mb'

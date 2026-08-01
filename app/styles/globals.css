@@ -1,0 +1,65 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+/* 105 unicode-range subsets — a page pulls only the chunks its glyphs land in,
+   so the 4.2 MB on disk never becomes 4.2 MB over the wire. */
+@import '@fontsource-variable/noto-sans-tc';
+@plugin '@tailwindcss/typography';
+@import 'tw-animate-css';
+
+@theme {
+  /* Inter has no CJK glyphs, so Latin resolves to Inter and Chinese falls
+     through to Noto per glyph. Order is the whole mechanism — don't swap. */
+  --font-sans:
+    'Inter Variable', 'Noto Sans TC Variable', ui-sans-serif, system-ui, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+/* Semantic tokens. Every value is a literal Tailwind zinc shade — inlined
+   rather than referenced as var(--color-zinc-*), because Tailwind drops theme
+   variables that no utility consumes and a var() reference does not count. */
+:root {
+  color-scheme: light dark;
+
+  --background: oklch(100% 0 0); /* white */
+  --foreground: oklch(21% 0.006 285.885); /* zinc-900 */
+  --muted: oklch(96.7% 0.001 286.375); /* zinc-100 */
+  --muted-foreground: oklch(55.2% 0.016 285.938); /* zinc-500 */
+  --border: oklch(92% 0.004 286.32); /* zinc-200 */
+  --primary: oklch(21% 0.006 285.885); /* zinc-900 */
+  --primary-foreground: oklch(98.5% 0 0); /* zinc-50 */
+  --ring: oklch(70.5% 0.015 286.067); /* zinc-400 */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(14.1% 0.005 285.823); /* zinc-950 */
+    --foreground: oklch(98.5% 0 0); /* zinc-50 */
+    --muted: oklch(27.4% 0.006 286.033); /* zinc-800 */
+    --muted-foreground: oklch(70.5% 0.015 286.067); /* zinc-400 */
+    --border: oklch(27.4% 0.006 286.033); /* zinc-800 */
+    --primary: oklch(98.5% 0 0); /* zinc-50 */
+    --primary-foreground: oklch(21% 0.006 285.885); /* zinc-900 */
+    --ring: oklch(44.2% 0.017 285.786); /* zinc-600 */
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-ring: var(--ring);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}

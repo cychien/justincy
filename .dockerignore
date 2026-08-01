@@ -1,4 +1,13 @@
+.git
+.github
 .react-router
+.playwright-mcp
+.vscode
 build
 node_modules
+.DS_Store
+.env*
 README.md
+BLOG_README.md
+CLAUDE.md
+fly.toml

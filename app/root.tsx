@@ -7,27 +7,10 @@ import {
   ScrollRestoration,
 } from 'react-router';
 
-import type { Route } from './+types/root';
-import './app.css';
-import { Header } from './components/Header';
-import { Footer } from './components/Footer';
+import { SiteHeader } from '~/components/SiteHeader';
 
-export const links: Route.LinksFunction = () => [
-  { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-  {
-    rel: 'preconnect',
-    href: 'https://fonts.gstatic.com',
-    crossOrigin: 'anonymous',
-  },
-  {
-    rel: 'stylesheet',
-    href: 'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap',
-  },
-  {
-    rel: 'stylesheet',
-    href: 'https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap',
-  },
-];
+import type { Route } from './+types/root';
+import './styles/globals.css';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -38,12 +21,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body className="min-h-screen bg-white text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
-        <div className="flex min-h-screen flex-col">
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </div>
+      <body className="min-h-svh">
+        <SiteHeader />
+        <main className="mx-auto w-full max-w-2xl px-6 pb-24">{children}</main>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -57,28 +37,26 @@ export default function App() {
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   let message = '糟糕！';
-  let details = '發生了意外錯誤。';
+  let details = '發生了意外錯誤';
   let stack: string | undefined;
 
   if (isRouteErrorResponse(error)) {
     message = error.status === 404 ? '404' : '錯誤';
-    details = error.status === 404 ? '找不到您請求的頁面。' : error.statusText || details;
+    details = error.status === 404 ? '找不到您請求的頁面' : error.statusText || details;
   } else if (import.meta.env.DEV && error && error instanceof Error) {
     details = error.message;
     stack = error.stack;
   }
 
   return (
-    <main className="flex min-h-[60vh] flex-col items-center justify-center px-4">
-      <div className="text-center">
-        <h1 className="text-6xl font-bold text-gray-900 dark:text-white">{message}</h1>
-        <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">{details}</p>
-        {stack && (
-          <pre className="mt-8 max-w-2xl overflow-x-auto rounded-xl bg-gray-100 p-4 text-left text-sm dark:bg-gray-900">
-            <code>{stack}</code>
-          </pre>
-        )}
-      </div>
-    </main>
+    <section className="text-muted-foreground space-y-3 text-sm leading-relaxed">
+      <h1 className="text-foreground text-base font-semibold tracking-tight">{message}</h1>
+      <p>{details}</p>
+      {stack && (
+        <pre className="bg-muted overflow-x-auto rounded-lg border p-4 text-xs">
+          <code>{stack}</code>
+        </pre>
+      )}
+    </section>
   );
 }
