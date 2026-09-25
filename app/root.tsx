@@ -21,9 +21,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body className="min-h-svh">
+      <body className="min-h-svh antialiased">
         <SiteHeader />
-        <main className="mx-auto w-full max-w-2xl px-6 pb-24">{children}</main>
+        {/* Each route owns its own measure — reading pages stay narrow, pages that
+            place an image beside the text need the extra width. */}
+        <main>{children}</main>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -49,7 +51,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   }
 
   return (
-    <section className="text-muted-foreground space-y-3 text-sm leading-relaxed">
+    <section className="text-muted-foreground mx-auto w-full max-w-2xl space-y-3 px-6 py-10 text-sm leading-relaxed">
       <h1 className="text-foreground text-base font-semibold tracking-tight">{message}</h1>
       <p>{details}</p>
       {stack && (

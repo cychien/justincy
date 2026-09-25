@@ -1,0 +1,3 @@
+# Authored content, not code. Prettier re-wraps JSX text children, and a line
+# break between CJK characters renders as an unwanted space in MDX output.
+app/content/**/*.mdx

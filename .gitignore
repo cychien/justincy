@@ -5,3 +5,7 @@
 # React Router
 /.react-router/
 /build/
+
+# Local screenshots and browser tooling
+/.playwright-mcp/
+/*.png

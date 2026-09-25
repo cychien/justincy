@@ -22,30 +22,41 @@
 
   --background: oklch(100% 0 0); /* white */
   --foreground: oklch(21% 0.006 285.885); /* zinc-900 */
+  /* Opaque on purpose: sticky elements inside a surface panel reuse it to mask
+     content scrolling beneath, which a translucent tint can't do. */
+  --surface: oklch(98.5% 0 0); /* zinc-50 */
   --muted: oklch(96.7% 0.001 286.375); /* zinc-100 */
-  --muted-foreground: oklch(55.2% 0.016 285.938); /* zinc-500 */
+  --muted-foreground: oklch(37% 0.013 285.805); /* zinc-600 */
   --border: oklch(92% 0.004 286.32); /* zinc-200 */
   --primary: oklch(21% 0.006 285.885); /* zinc-900 */
   --primary-foreground: oklch(98.5% 0 0); /* zinc-50 */
   --ring: oklch(70.5% 0.015 286.067); /* zinc-400 */
+  /* The one non-zinc token: a highlighter stroke, in a highlighter's yellow. Opaque
+     here because the stroke sits under near-black text. */
+  --mark: oklch(94.5% 0.129 101.54); /* yellow-200 */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: oklch(14.1% 0.005 285.823); /* zinc-950 */
     --foreground: oklch(98.5% 0 0); /* zinc-50 */
+    --surface: oklch(21% 0.006 285.885); /* zinc-900 */
     --muted: oklch(27.4% 0.006 286.033); /* zinc-800 */
     --muted-foreground: oklch(70.5% 0.015 286.067); /* zinc-400 */
     --border: oklch(27.4% 0.006 286.033); /* zinc-800 */
     --primary: oklch(98.5% 0 0); /* zinc-50 */
     --primary-foreground: oklch(21% 0.006 285.885); /* zinc-900 */
     --ring: oklch(44.2% 0.017 285.786); /* zinc-600 */
+    /* Translucent, and a darker yellow: the stroke now sits under near-white text, which
+       yellow-200 at full strength would leave almost unreadable. */
+    --mark: color-mix(in oklab, oklch(68.1% 0.162 75.834) 45%, transparent); /* yellow-600 */
   }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
@@ -61,5 +72,74 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Preflight strips list markers, and MDX bodies are written in Markdown, where a list
+   is the default shape for a set of notes. Every em rather than rem: the same rule has
+   to hold the article measure and the smaller annotation notes, whose type scale
+   differs. Nesting is keyed on depth per list type, so a sub-list always reads as one. */
+@utility mdx-lists {
+  & :is(ul, ol) {
+    padding-left: 1.5em;
+  }
+
+  & ul {
+    list-style-type: disc;
+  }
+
+  & ul ul {
+    list-style-type: circle;
+  }
+
+  & ul ul ul {
+    list-style-type: square;
+  }
+
+  & ol {
+    list-style-type: decimal;
+  }
+
+  & ol ol {
+    list-style-type: lower-alpha;
+  }
+
+  & ol ol ol {
+    list-style-type: lower-roman;
+  }
+
+  & li + li,
+  & li > :is(ul, ol) {
+    margin-top: 0.4em;
+  }
+}
+
+/* A bold run in a note is a phrase the author marked while reading, so it is drawn as a
+   highlighter stroke rather than the bold, darkened text Markdown implies: half a step of
+   weight, and the stroke carries the rest. The band is sized and placed in em, so it keeps
+   the same relation to the x-height at every type scale; the padding is cancelled by an
+   equal negative margin so the stroke overhangs the word without moving the text around
+   it. */
+@utility mdx-mark {
+  & :is(strong, b) {
+    font-weight: 500;
+    color: var(--foreground);
+    background-image: linear-gradient(to top, var(--mark) 0.62em, transparent 0.62em);
+    padding-inline: 0.16em;
+    margin-inline: -0.16em;
+    /* Each line of a wrapped phrase gets its own stroke, as a pen would leave it. */
+    box-decoration-break: clone;
+  }
+}
+
+/* One-shot feedback when a dot click targets an annotation card. Literal blue-500 —
+   same inlining rationale as the tokens above; mixing over --background keeps the
+   flash subtle in both schemes. */
+@keyframes annotation-flash {
+  from {
+    background-color: color-mix(in oklab, oklch(62.3% 0.214 259.815) 18%, var(--background));
+  }
+  to {
+    background-color: var(--background);
   }
 }

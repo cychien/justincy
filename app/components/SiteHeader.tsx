@@ -16,16 +16,18 @@ const ICON_BUTTON_STYLE =
   'text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring -mr-2 rounded-full p-2 transition-colors focus-visible:ring-2 focus-visible:outline-hidden';
 
 export function SiteHeader() {
-  const [open, setOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const { pathname } = useLocation();
 
-  useEffect(() => setOpen(false), [pathname]);
+  // Tying the panel to the path it was opened on closes it on any navigation —
+  // link, back, or forward — without an effect that re-renders after paint.
+  const [openedPathname, setOpenedPathname] = useState<string | null>(null);
+  const open = openedPathname === pathname;
 
   const close = useCallback(() => {
-    setOpen(false);
+    setOpenedPathname(null);
     toggleRef.current?.focus();
   }, []);
 
@@ -77,7 +79,7 @@ export function SiteHeader() {
           aria-label="選單"
           aria-haspopup="dialog"
           aria-expanded={open}
-          onClick={() => setOpen(true)}
+          onClick={() => setOpenedPathname(pathname)}
           className={ICON_BUTTON_STYLE}
         >
           <Bars3Icon className="size-5" />
@@ -92,7 +94,7 @@ export function SiteHeader() {
             end={to === '/'}
             className={({ isActive }) =>
               cn(
-                'focus-visible:ring-ring rounded-full px-3 py-1.5 transition-colors focus-visible:ring-2 focus-visible:outline-hidden',
+                'focus-visible:ring-ring rounded-full px-3 py-1.5 font-medium transition-colors focus-visible:ring-2 focus-visible:outline-hidden',
                 // Hover is scoped to inactive items so its lighter fill can't override the
                 // active pill's solid one — both are bg utilities, and the variant wins.
                 isActive
