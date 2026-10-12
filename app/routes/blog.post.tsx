@@ -13,6 +13,7 @@ import {
   type BlogPostFrontmatter,
 } from '~/lib/blog';
 import { slugFromModulePath } from '~/lib/content';
+import { publicOrigin } from '~/lib/origin';
 
 import type { Route } from './+types/blog.post';
 
@@ -71,7 +72,7 @@ export function loader({ params, request }: Route.LoaderArgs) {
     frontmatter: post.frontmatter,
     title: series ? seriesPartTitle(series, title) : title,
     series: series ? { name: series, parts } : undefined,
-    origin: new URL(request.url).origin,
+    origin: publicOrigin(request),
   };
 }
 
