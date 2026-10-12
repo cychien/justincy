@@ -3,5 +3,11 @@
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "files.associations": {
     "*.css": "tailwindcss"
+  },
+  "[markdown]": {
+    "editor.wordWrap": "on"
+  },
+  "[mdx]": {
+    "editor.wordWrap": "on"
   }
 }

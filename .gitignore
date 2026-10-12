@@ -9,3 +9,6 @@
 # Local screenshots and browser tooling
 /.playwright-mcp/
 /*.png
+
+# Blog cover work files: candidates, logs, rendered OG pages
+/tmp/

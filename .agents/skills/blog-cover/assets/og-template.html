@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="{{fonts}}/inter/index.css" />
+    <link rel="stylesheet" href="{{fonts}}/noto-sans-tc/index.css" />
+    <style>
+      /* Same zinc tokens as app/styles/globals.css, in sRGB because this page never
+         meets Tailwind: zinc-50 background, zinc-900 text, zinc-200 border, zinc-500 meta. */
+      :root {
+        --background: #fafafa;
+        --foreground: #18181b;
+        --border: #e4e4e7;
+        --meta: #71717a;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+      html,
+      body {
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+      }
+      body {
+        display: flex;
+        align-items: stretch;
+        gap: 64px;
+        padding: 72px;
+        background: var(--background);
+        color: var(--foreground);
+        font-family: 'Inter Variable', 'Noto Sans TC Variable', sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .text {
+        display: flex;
+        flex: 1 1 auto;
+        min-width: 0;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .site {
+        font-size: 22px;
+        font-weight: 500;
+        letter-spacing: 0.01em;
+        color: var(--meta);
+      }
+      .title {
+        /* Four lines plus the few px Noto Sans TC glyphs overflow their line boxes. */
+        max-height: calc(4 * 1.25em + 0.1em);
+        overflow: hidden;
+        font-size: 56px;
+        font-weight: 600;
+        line-height: 1.25;
+        letter-spacing: -0.01em;
+        text-wrap: balance;
+        margin-top: 32px;
+        margin-bottom: 32px;
+      }
+      .date {
+        font-size: 22px;
+        letter-spacing: 0.04em;
+        color: var(--meta);
+        font-variant-numeric: tabular-nums;
+      }
+      .cover {
+        flex: 0 0 auto;
+        align-self: center;
+        width: 440px;
+        aspect-ratio: 4 / 3;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        object-fit: cover;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="text">
+      <div class="site">justincy</div>
+      <h1 class="title">{{title}}</h1>
+      <div class="date">{{date}}</div>
+    </div>
+    <img class="cover" src="{{cover}}" alt="" />
+    <script>
+      // A long title would otherwise be clamped mid-sentence; shrink it until it fits.
+      // Count lines rather than compare scrollHeight to clientHeight: CJK glyph overflow
+      // makes scrollHeight exceed clientHeight even when every line fits.
+      const title = document.querySelector('.title');
+      const lineCount = () =>
+        Math.round(title.scrollHeight / parseFloat(getComputedStyle(title).lineHeight));
+      let size = 56;
+      while (lineCount() > 4 && size > 36) {
+        size -= 2;
+        title.style.fontSize = `${size}px`;
+      }
+    </script>
+  </body>
+</html>

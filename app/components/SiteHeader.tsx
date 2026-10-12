@@ -2,6 +2,7 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/20/solid';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router';
 
+import { Logo } from '~/components/Logo';
 import { cn } from '~/lib/utils';
 
 const NAV_ITEMS = [
@@ -72,7 +73,7 @@ export function SiteHeader() {
   return (
     <header className="px-4 py-5 sm:px-6">
       <div className="flex items-center justify-between sm:hidden">
-        <span className="text-foreground text-sm font-medium">justincy</span>
+        <Logo />
         <button
           ref={toggleRef}
           type="button"
@@ -116,10 +117,10 @@ export function SiteHeader() {
           aria-label="選單"
           className="bg-background animate-in fade-in slide-in-from-top-2 fixed inset-0 z-50 flex flex-col px-4 duration-200 sm:hidden"
         >
-          {/* Same padding as the closed bar, so the wordmark holds its position and
+          {/* Same padding as the closed bar, so the logo holds its position and
               only the icon swaps when the panel opens. */}
           <div className="flex items-center justify-between py-5">
-            <span className="text-foreground text-sm font-medium">justincy</span>
+            <Logo />
             <button
               ref={closeRef}
               type="button"

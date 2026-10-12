@@ -1,3 +1,5 @@
+import path from 'node:path';
+
 import { reactRouter } from '@react-router/dev/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
@@ -8,6 +10,11 @@ import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
 import remarkGfm from 'remark-gfm';
 import rehypePrettyCode from 'rehype-pretty-code';
 
+import { rehypeImageDimensions } from './plugins/rehype-image-dimensions';
+import { remarkThumbColor } from './plugins/remark-thumb-color';
+
+const publicDir = path.resolve(import.meta.dirname, 'public');
+
 export default defineConfig({
   server: {
     allowedHosts: true,
@@ -15,8 +22,14 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     mdx({
-      remarkPlugins: [remarkFrontmatter, remarkMdxFrontmatter, remarkGfm],
+      remarkPlugins: [
+        remarkFrontmatter,
+        [remarkThumbColor, { publicDir }],
+        remarkMdxFrontmatter,
+        remarkGfm,
+      ],
       rehypePlugins: [
+        [rehypeImageDimensions, { publicDir }],
         [
           rehypePrettyCode,
           {

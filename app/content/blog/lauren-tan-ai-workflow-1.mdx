@@ -1,0 +1,81 @@
+---
+title: 建立信任
+series: 深入 Lauren Tan AI 工作流
+kind: AI 工作流
+date: 2026-10-06
+thumb: /images/blog/lauren-tan-ai-workflow-1/cover.webp
+thumbAlt: 戴圓框眼鏡、留長髮的 Lauren Tan 拿著麥克風微笑說話，身後是米色手繪畫布背景
+ogImage: /images/blog/lauren-tan-ai-workflow-1/og.jpg
+---
+
+一個人，一個月 2000 個 PR。
+
+這是 Lauren Tan 現在的開發量。她是 SpaceXAI 的軟體工程師，待過 React Core Team 和 Netflix。最近 Grok bot 推出，她分享了自己平常是怎麼做到這種規模的開發的。
+
+<YouTube id="Cmoh-yR-usA" title="Lauren Tan - xAI Grok bot" />
+
+在這個系列文章裡，我們將學習她使用 AI 的方式。
+
+我們會先談她的工作哲學：怎樣用 AI 同時做到高產量和高品質。這套哲學是整個系列的根基，她後來的工作流都是從它衍生出來的。接著拆解她實際在用的工作流 pstack：一份好的 skill 和驗證機制長什麼樣子，以及怎麼把這套方法用在你自己的工作上。
+
+這篇先從哲學開始。
+
+## 信任與生產力
+
+Lauren 說，跟 AI 協作很像帶團隊。如果你不信任某個成員，就得時時盯著他，最後累垮的是你自己。
+
+所以，**建立信任是解鎖生產力的第一步**。
+
+她也不是從第一天就信任 AI。剛開始用的時候，她經常 review AI 的產出，也常抓到它粗心、說謊。
+
+沒被約束過的 AI 有個根本限制：它不知道你的偏好，也不知道你的工作流，所以做起事來總是笨拙。信任不會自己出現，得靠我們主動建立。
+
+## 信任建立方式
+
+建立信任首要是 **建立規範**，也就是把你做事的方式教給 AI。
+
+把你平常的工作流寫成 skill，例如修 bug 的步驟、開發 feature 的流程。也可以訂驗證標準，例如發布前必須通過哪些 code quality 檢查。
+
+規範訂好後，就開始觀察 AI 的表現。它不會一次到位，但每次修正都能把產出校正得更接近你要的樣子。某條新 rule 證實有效，就把它永久加進 skill。
+
+Lauren 說，這個過程就像在替 skill 做 testing。她的 pstack 裡甚至有一個 [eval skill](https://github.com/cursor/plugins/blob/main/pstack/skills/poteto-mode/playbooks/eval.md)，專門教 AI 怎麼跑這種 testing：主 agent 出題給 sub agent 做，但不告訴它 **這是測試**，看它在不知情的情況下依靠新的 rule 有沒有優化產出。做完後，再交給另一個 agent 評分。
+
+有趣的是，同一道題會交給 **不同 model** 的 agent 做，確保新 rule 不是只對某個 model 有效。
+
+不過這套流程很耗時間，也很耗 token，不適合在規範剛起步時大量使用。比較適合的時機是規範已經成形之後 - 你在 code review 時發現問題，新增一條 rule 來解決，這時再用它驗證那條 rule。
+
+說到底，就是不斷跟 AI 磨合，摸清楚它會在哪裡出錯，就在那裡補一條 rule。慢慢地，你能掌控它的產出，也開始信任它。
+
+## 建立驗證機制
+
+光是滿意 AI 的產出還不夠。它還是可能犯錯，例如 model 突然變笨。所以我們還需要驗證，讓信任更有依據。
+
+Lauren 提到，大型軟體公司會用大量約束加上持續集成，擋住低品質的 code 進入 codebase。這些流程之所以這麼複雜，是為了 **不讓技術最弱的那個人拉低整個 codebase 品質**。它們替品質訂了一條底線。
+
+現在每個人手上都有一大群 agent，等於自己就是一間大型軟體公司，當然也需要驗證機制來審核 code。
+
+她列了 5 種驗證：
+
+- codebase：目錄怎麼組織、怎麼劃分，哪些依賴可以 import、哪些不行
+- static analysis：找出反覆出現的壞模式
+- rules / Bugbot
+- skills
+- style guide
+
+前兩種是硬性檢查，後三種是軟性檢查。軟性檢查的做法是：請你的 agent 根據你訂好的 rule，做出一份 verification skill，在任務完成或持續集成時拿來檢查。
+
+有了反覆調整過的 skill 和可靠的驗證機制，你會越來越放心 AI 的產出。放心到一個程度，就能進入下一個階段。
+
+## 擴展你的 AI 大軍
+
+有了信任，你就可以放手讓 AI agent 瘋狂推 PR 了。
+
+![信任程度與 Agent 數量的關係曲線：信任越高，能同時運作的 Agent 越多](/images/blog/lauren-tan-ai-workflow-1/trust-vs-agents@2x.webp)
+
+這時你的重心會轉向雲端 agent：怎麼讓它們並行、自動運行，以完成更多任務。雲端 agent 不受時間、地點和數量限制。這是最讓人興奮的一步，前面調整 skill 時，進步又慢又不明顯；到了這一步，每一點改善都會乘上 agent 的數量，產量和品質一起往上衝。
+
+> 建立規範、磨合出信任 -> 建立驗證機制 -> 擴展到雲端 agent
+
+回到開頭那 2000 個 PR：那個數字背後，是她一條一條 rule 換來的信任。
+
+下一篇，我們會拆解 Lauren 實際在用的工作流 **pstack**，看好的工作流長什麼樣子，一份好的 skill 和驗證機制又該怎麼設計。

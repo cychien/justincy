@@ -7,7 +7,9 @@ import {
   type ImageAnnotationsProps,
 } from '~/components/ImageAnnotations';
 import { Beat, Info, InfoArchitecture } from '~/components/InfoArchitecture';
-import { slugFromModulePath, type DesignPostFrontmatter } from '~/lib/design';
+import { KindSeparator } from '~/components/KindSeparator';
+import { slugFromModulePath } from '~/lib/content';
+import type { DesignPostFrontmatter } from '~/lib/design';
 
 import type { Route } from './+types/design.post';
 
@@ -99,23 +101,7 @@ export default function DesignPost({ loaderData }: Route.ComponentProps) {
         <time dateTime={date} className="text-muted-foreground/60 block text-sm tracking-wide">
           {format(parseISO(date), 'yyyy.MM.dd')}
         </time>
-        {/* The separator borrows the viewer's annotation-dot vocabulary - a hint of
-            how this post is meant to be read - and names the genre in the middle. */}
-        <div className="mt-7 flex items-center gap-3">
-          <span aria-hidden="true" className="border-border w-12 border-t border-dashed" />
-          {kind ? (
-            <span className="flex h-7 items-center gap-1.5 rounded-full bg-lime-200 px-3 text-[13px] leading-7 font-medium tracking-wide text-lime-900">
-              {/* <span aria-hidden="true" className="size-1.5 rounded-full bg-blue-500" /> */}
-              {kind}
-            </span>
-          ) : (
-            <span
-              aria-hidden="true"
-              className="size-2 rounded-full bg-blue-500 ring-4 ring-blue-500/15"
-            />
-          )}
-          <span aria-hidden="true" className="border-border w-12 border-t border-dashed" />
-        </div>
+        <KindSeparator kind={kind} className="mt-7" />
       </header>
 
       <div className={PROSE}>

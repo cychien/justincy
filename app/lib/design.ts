@@ -12,11 +12,3 @@ export interface DesignPostFrontmatter {
   /** Top-cropped 4:3 card image. Full path, extension included. */
   thumb: string;
 }
-
-/**
- * A post's slug is its filename. Both design routes derive it from the same
- * import.meta.glob keys and must agree, or the index links 404.
- */
-export function slugFromModulePath(modulePath: string): string {
-  return modulePath.replace(/^.*\//, '').replace(/\.mdx$/, '');
-}
