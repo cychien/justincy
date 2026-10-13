@@ -34,7 +34,10 @@ const COMPONENTS = { YouTube };
 
 // Same voice as the design posts - muted body, underlined links - extended to the
 // Markdown a written piece reaches for that a design breakdown does not.
-// Fences without a language skip syntax highlighting; posts use them for quoted prose, so they wrap.
+// Top-level lists draw their own markers: native ones hug the text, so a bullet and a
+// wider number would start at different x. The empty-string list style hides the native
+// marker without `none`, which makes Safari drop list semantics.
+// Plain-text fences hold quoted prose rather than code, so they wrap.
 const PROSE = `
   mdx-lists text-muted-foreground space-y-6 text-base leading-relaxed tracking-wide
   [&>h2]:text-foreground [&>h2]:pt-4 [&>h2]:text-xl [&>h2]:font-semibold [&>h2]:tracking-normal
@@ -46,14 +49,21 @@ const PROSE = `
   [&>blockquote]:border-foreground [&>blockquote]:text-foreground [&>blockquote]:border-l-3
   [&>blockquote]:bg-muted/50 [&>blockquote]:rounded-r-md [&>blockquote]:py-3
   [&>blockquote]:pr-4 [&>blockquote]:pl-5 [&>blockquote>*+*]:mt-3
+  [&>:is(ul,ol)]:bg-muted/50 [&>:is(ul,ol)]:rounded-xl [&>:is(ul,ol)]:py-4 [&>:is(ul,ol)]:pr-5
+  [&>:is(ul,ol)]:pl-10! [&>:is(ul,ol)]:[list-style-type:'']! [&>ol]:[counter-reset:item]
+  [&>:is(ul,ol)>li]:relative [&>:is(ul,ol)>li]:before:absolute [&>:is(ul,ol)>li]:before:-left-5
+  [&>ul>li]:before:-left-4 [&>ul>li]:before:top-[calc(0.8125em-2.5px)] [&>ul>li]:before:size-[5px]
+  [&>ul>li]:before:rounded-full [&>ul>li]:before:bg-current [&>ul>li]:before:content-['']
+  [&>ol>li]:[counter-increment:item] [&>ol>li]:before:content-[counter(item)'.']
+  [&>ol>li]:before:tabular-nums
   [&>hr]:border-border [&>hr]:mx-auto [&>hr]:w-24 [&>hr]:border-dashed
   [&_img]:border-border/80 [&_img]:rounded-xl [&_img]:border
   [&_:not(pre)>code]:bg-muted [&_:not(pre)>code]:text-foreground [&_:not(pre)>code]:rounded
   [&_:not(pre)>code]:px-1.5 [&_:not(pre)>code]:py-0.5 [&_:not(pre)>code]:text-[0.875em]
-  [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:p-4 [&_pre]:text-sm [&_pre]:leading-relaxed
-  [&_pre]:tracking-normal
-  [&_pre:not([data-language])]:bg-muted [&_pre:not([data-language])]:text-foreground
-  [&_pre:not([data-language])]:whitespace-pre-wrap [&_pre:not([data-language])]:break-words
+  [&_pre]:overflow-x-auto [&_pre]:rounded-[10px] [&_pre]:bg-[#1f2328]!
+  [&_pre]:shadow-[inset_0_0_0_1px_rgb(255_255_255/0.06)] [&_pre]:font-mono [&_pre]:text-[13px]
+  [&_pre]:leading-[21px] [&_pre]:tracking-normal [&_pre]:px-4 [&_pre]:py-3
+  [&_pre[data-language=text]]:whitespace-pre-wrap [&_pre[data-language=text]]:break-words
   [&_table]:w-full [&_table]:text-sm [&_th]:text-foreground [&_th]:font-medium
   [&_:is(th,td)]:border-b [&_:is(th,td)]:py-2 [&_:is(th,td)]:pr-4 [&_:is(th,td)]:text-left
 `;

@@ -46,29 +46,25 @@ pstack guide 裡的例子：
 
 通用規則是記錄在總機裡，要求每段工作流程都要遵守的原則。pstack 的通用規則包括：
 
-- 自主權
+自主權
 
 ```
 - 直接動手，MCP 工具隨你用。改得回來的事，還有發團隊訊息、更新 ticket、跑 eval 這類對外動作，都不用先問。
-- 改不回來的事一律先停下來問，例如對共用的 branch force-push、部署、刪資料、寄訊息給客戶。
 ...
 ```
 
-- 核心工程原則
+核心工程原則
 
 ```
 - Laziness Protocol: 要重構、要決定改動多大，或忍不住想多加一層抽象、把參數一路往下傳的時候用。能刪就刪，只做解決問題需要的最小改動。
-- Foundational Thinking: 寫邏輯之前用。先想清楚核心的型別和資料結構、要先打地基還是先做功能、同時在跑的幾個部分會共用什麼。
 ...
 ```
 
-- 如何回覆
+如何回覆
 
 ```
 - 用短的直述句。一句只講一件事，用句號結尾。
 - 簡短不代表可以省內容。句子要短，但 playbook 要求回報的每一項都要寫到：細節、取捨、做了哪些選擇、還有哪些等你決定。
-
-每本 playbook 最後都照這個寫法回覆。附 PR 連結時，用 https://github.com/<owner>/<repo>/pull/<number> 的格式。各 playbook 自己的 Reply 只寫它特有的內容。
 ...
 ```
 
@@ -90,7 +86,7 @@ pstack guide 裡的例子：
 
 #### 如何使用 playbook
 
-配對到 playbook 之後，總機規定這樣開工：
+在總機裡，必須明確定義如何使用配對到的 playbook，例如 pstack 是這樣定義的：
 
 ```
 開一個 todolist。最前面放配對到的 playbook 步驟，一字不改地抄過來，排在這次任務自己的 todo 前面。決定不做的步驟不要刪，留在清單上，寫一行 skip: <理由>。
@@ -100,10 +96,10 @@ pstack guide 裡的例子：
 
 #### 特例：figure-it-out
 
-有些任務太大，或根本沒有現成的 playbook，這時交給一本特別的 playbook：`figure-it-out`。總機的規則寫著：
+有些任務太大，或根本沒有現成的 playbook，這時交給一本特別的 playbook：`figure-it-out`。pstack 是這樣寫的：
 
 ```
-很大或牽涉很多地方的工作 (例如要改很多呼叫點的 migration、分很多部分的大改動)，或使用者會先離開、之後才回來檢查的工作，就算 Feature 這種範圍較小的 playbook 也套得上，還是交給 figure-it-out。找不到合適的 playbook 時，也交給 figure-it-out。它會替這個任務量身寫一本夠嚴謹的 playbook。
+很大或牽涉很多地方的工作 (例如要改很多呼叫點的 migration、分很多部分的大改動)，或使用者會先離開、之後才回來檢查的工作，交給 figure-it-out。找不到合適的 playbook 時，也交給 figure-it-out。它會替這個任務量身寫一本夠嚴謹的 playbook。
 ```
 
 pstack README 裡有一個例子：
@@ -117,9 +113,9 @@ pstack README 裡有一個例子：
 
 假設 repo 裡有 40 個呼叫點。`figure-it-out` 不會直接開始改，而是先替這次任務寫出一本 playbook：
 
-1. **定完成條件，而且要能判斷對錯** 
-2. **先準備好驗證**
-3. **拆成小單位，風險最高的先做** 
+1. 訂完成條件，而且要能判斷對錯
+2. 先準備好驗證
+3. 拆成小單位，風險最高的先做
 
 總歸來看，一個好的總機必須：
 
@@ -151,21 +147,15 @@ pstack README 裡有一個例子：
 
 從這本 playbook 可以看出幾個寫法。
 
-**開頭先講責任。** 每本 playbook 的第一句，都說 agent 負責什麼。
-
-**禁止這類任務最常見的偷懶。** 修 bug 最常見的偷懶，是加幾行「可能有幫助」的防禦性 code 就收工。`Bug fix` 開頭就說，這種保險措施不是修正，不能 ship。
-
-**用步驟，不用長篇敘述。** 步驟相比於長篇論述，agent 更知道怎麼遵守。
-
-**專門的能力交給共用工具。** 步驟裡只寫「用 `how`」、「用 `architect`」，怎麼做由其他 skill 負責。
-
-**寫清楚和相鄰 playbook 的邊界。** `Refactoring` 寫明，它不是加行為的 `Feature`，也不是修行為的 `Bug fix`。重構途中發現 bug 或缺少的功能，要拆出去另外處理。
-
-**結尾規定回報內容。** 每本 playbook 的最後一行都是 Reply，定義任務完成後，要輸出哪些內容。
+- **禁止這類任務最常見的偷懶。** 修 bug 最常見的偷懶，是加幾行防禦性 code 就收工。`Bug fix` 開頭就說，這種保險措施不是修正，不能 ship。
+- **用步驟，不用長篇敘述。** 步驟相比於長篇論述，agent 更知道怎麼遵守。
+- **專門的能力交給共用工具。** 步驟裡只寫「用 `how`」、「用 `architect`」，怎麼做由其他 skill 負責。
+- **寫清楚和相鄰 playbook 的邊界。** `Refactoring` 寫明，它不是加行為的 `Feature`，也不是修行為的 `Bug fix`。重構途中發現 bug 或缺少的功能，要拆出去另外處理。
+- **結尾規定回報內容。** 每本 playbook 的最後一行都是 Reply，定義任務完成後，要輸出哪些內容。
 
 playbook 之間也能互相呼叫。會改 code 的 `Bug fix`、`Feature`、`Refactoring`，最後一步都是 `Opening a PR`。
 
-playbook 也能調整原則的優先順序。`Prototype` 開頭寫著：
+playbook 也能調整原則的優先順序。 例如 `Prototype` 開頭寫著：
 
 ```
 唯一一本 Laziness Protocol 的「最小改動」和驗證標準反過來的 playbook。速度優先於精緻，code 品質不重要，不做規劃。
@@ -195,11 +185,9 @@ playbook 也能調整原則的優先順序。`Prototype` 開頭寫著：
 
 對於共用工具，pstack 有幾個值得學的做法。
 
-**一個工具只做一件事，再互相組合。** `architect` 自己不探索 code，而是先跑 `how` 和 `why` 打底，再用 `arena` 產出幾份設計來比較。
-
-**輸出的形狀固定。** `how` 的報告固定分成 Overview、Key Concepts、How It Works、Where Things Live、Gotchas 五段。`interrogate` 把每個發現分進「要處理」、「可以考慮」、「知道就好」、「駁回」四類。`swarm` 的每個 worker 只能回報 PASS、ISSUES 或 BLOCKED。呼叫它的 playbook 知道會拿到什麼，就能直接接著用，例如 `Investigation` 的第 3 步，就是直接交出 `how` 格式的報告。
-
-**把 sub agent 的協作方式做成工具。** `arena` 讓幾個 sub agent 各做一份再挑最好的，`swarm` 讓它們分頭平行處理，`interrogate` 讓不同 model 互相審查。三者都靠多個 sub agent 加深探索的深度和品質。這些流程定義一次，任何 skill 都能直接呼叫，做到更複雜的事。
+- **一個工具只做一件事，再互相組合。** `architect` 自己不探索 code，而是先跑 `how` 和 `why` 打底，再用 `arena` 產出幾份設計來比較。
+- **輸出的形狀固定。** `how` 的報告固定分成 Overview、Key Concepts、How It Works、Where Things Live、Gotchas 五段。`interrogate` 把每個發現分進「要處理」、「可以考慮」、「知道就好」、「駁回」四類。`swarm` 的每個 worker 只能回報 PASS、ISSUES 或 BLOCKED。呼叫它的 playbook 知道會拿到什麼，就能直接接著用，例如 `Investigation` 的第 3 步，就是直接交出 `how` 格式的報告。
+- **把 sub agent 的協作方式做成工具。** `arena` 讓幾個 sub agent 各做一份再挑最好的，`swarm` 讓它們分頭平行處理，`interrogate` 讓不同 model 互相審查。三者都靠多個 sub agent 加深探索的深度和品質。這些流程定義一次，任何 skill 都能直接呼叫，做到更複雜的事。
 
 總歸來看，好的共用工具必須：
 

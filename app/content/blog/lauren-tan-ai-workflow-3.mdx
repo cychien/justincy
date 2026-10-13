@@ -18,23 +18,23 @@ date: 2026-10-08
 
 `/reflect` 會開三個 reviewer 讀這次的對話紀錄，各從一個角度找教訓：
 
-- 判斷：找出這次事件背後的通用原則。
-- 工具：找出具體的工具和指令細節，也會標出哪些資訊 agent 其實查得到，不必由你提供。
-- 發散：專找前兩個會漏掉的盲點。
+- Judgement：找出某個具體事件背後的長期原則。
+- Tooling：指出之後的 agent 不寫下來就得重新摸索的具體 tool、指令、路徑或 flag。
+- Divergent：專找前兩個會漏掉的盲點。
 
-舉個例子：你請 agent 補一個 e2e 測試，它卡在登入頁，來回問了你好幾次測試帳號。其實帳號就寫在 `.env.example` 裡。工具 reviewer 會抓出這點，提議在 skill 裡加一句：「e2e 測試的帳號在 `.env.example`，自己去讀，不要問人。」
+舉個例子：你請 agent 補一個 e2e 測試，它卡在登入頁，來回問了你好幾次測試帳號。其實帳號就寫在 `.env.example` 裡。Tooling reviewer 會抓出這點，提議在 skill 裡加一句：「e2e 測試的帳號在 `.env.example`，自己去讀，不要問人。」
 
 接著由一個 synthesizer 逐條審查這些建議。它的審查標準寫得很具體 (節錄)：
 
 ```
-- 持久：路徑、SHA、工具版本和 code 的形狀都變了之後，6 個月後仍然成立。
-- 具體：範圍夠廣，能套用到不同任務；又夠精確，讓未來的 agent 認得出什麼時候該用。
-- 改變決定：未來的 agent 會因為這次修改而做不同的事，不只是多讀一段文字。
-- 結構化機制檢查：如果 lint、script、metadata flag 或 runtime check 已經能強制這條規則，或能便宜地做到，就移到 Backlog。skill 的文字只留給機制無法強制的事。
-- 已經涵蓋：如果提案重複了既有、位置也恰當的指引，就駁回，因為問題出在執行，不在 skill。
+- Durability：路徑、SHA、工具版本和 code 的形狀都變了之後，是否仍然成立。
+- Specificity：範圍夠廣，能套用到不同任務；又夠精確，讓未來的 agent 認得出什麼時候該用。
+- Decision-changing：未來的 agent 會因為這次修改而做不同的事
+- Structural-mechanism：如果 lint、script、metadata flag 或 runtime check 已經能強制這條規則，或能便宜地做到，就移到 Backlog。skill 的文字只留給機制無法強制的事。
+- Already-covered：如果提案與現有 skill 重複，就駁回，因為問題出在執行，不在 skill。
 ```
 
-synthesizer 最後把建議分成三類：接受、拒絕、待辦。**改 skill 之前一定要你核准**。
+synthesizer 最後把建議分成三類：接受、拒絕、待辦。針對接受的建議做調整。
 
 ## 反覆出現的錯：/correct
 
@@ -55,11 +55,9 @@ rule 排在最後，因為 rule 的約束力是最低的。
 
 有些判斷天生沒辦法寫成 lint，skill 是它們唯一能做的約束。能機械化檢查的教訓，就從文字移到 repo 的結構裡。
 
-pstack 自己也這樣做。它的 `Multi-phase plan` playbook 要求每份計畫都包含 unit、live、perf 三種驗證，這條要求現在由 `check-plan.mjs` 這個腳本檢查。計畫缺了哪一塊，腳本會直接印出來。
-
 ---
 
-**和 `/reflect` 差在哪？** `/reflect` 讀的是一次對話，改的是 skill 的文字。`/correct` 讀的是 repo 的歷史，像 commit、revert、review 留言，找出至少發生過兩次的錯，改的是 repo 本身，盡量用硬規則限制 agent 犯錯。
+**和 `/reflect` 差在哪？** `/reflect` 讀的是一次對話，`/correct` 讀的是 repo 的歷史，像 commit、revert、review 留言，找出至少發生過兩次的錯。但他們都會優先考慮訂立硬性規則做規範，真的不行，才會選擇去改 skill。
 
 ## 怎麼知道改對了：eval
 
@@ -88,17 +86,12 @@ poteto-mode 寫的是 Lauren 自己的工作習慣。`/automate-me` 讓你從自
 
 之後習慣變了，再跑一次就好。它只讀上次修改之後的對話，保留你沒推翻的規則，只修改有新證據的部分。
 
-## 四個機制的分工
-
-| 教訓從哪裡來 | 用哪個機制 | 改哪裡 |
-| --- | --- | --- |
-| 一次任務不順 | `/reflect` | skill |
-| 同一個錯一再發生 | `/correct` | repo 的架構、型別、lint、測試 |
-| 改了 skill，不確定有沒有效 | eval | 決定這次修改要不要留下 |
-| 工作習慣變了 | `/automate-me` | 你的 mode skill |
+## 四個機制
 
 四個機制處理的教訓不同，做的卻是同一件事：**每次糾正 agent，都把這次的教訓變成下一次會自動擋下錯誤的東西**。能寫成檢查的，就寫成檢查。需要判斷的，寫進 skill，再用 eval 確認 agent 真的照做。
 
-想開始的話，不用一次把整套搬過來。guide 的建議是「從比你想的更小的地方開始」。先照平常的方式下 prompt，觀察 agent 在哪裡失敗。同一個錯出現第二次，就替它加一個 skill，或加一個檢查。
+想開始的話，不用一次把整套搬過來。guide 的建議是「從比你想的更小的地方開始」。先照平常的方式下 prompt，觀察 agent 在哪裡失敗。同一個錯出現第二次，就替它加一個 rule，或加一個檢查。
+
+另外也可以反過來，完全不先定義 skill，直接請 agent 做和調整，直到一件事完全做好後，再利用 `/reflect` 請它歸結出 skill。
 
 不過磨合得再好，agent 還是會犯錯。下一篇我們看最後一步：pstack 怎麼建立驗證標準，又怎麼把「建立驗證標準」這件事本身做成一個 skill。

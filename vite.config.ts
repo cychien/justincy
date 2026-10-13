@@ -12,6 +12,7 @@ import rehypePrettyCode from 'rehype-pretty-code';
 
 import { rehypeImageDimensions } from './plugins/rehype-image-dimensions';
 import { remarkThumbColor } from './plugins/remark-thumb-color';
+import { slashCommands } from './plugins/shiki-slash-commands';
 
 const publicDir = path.resolve(import.meta.dirname, 'public');
 
@@ -35,6 +36,8 @@ export default defineConfig({
           {
             theme: 'github-dark',
             keepBackground: true,
+            defaultLang: { block: 'text' },
+            transformers: [slashCommands({ color: '#79c0ff' })],
           },
         ],
       ],
