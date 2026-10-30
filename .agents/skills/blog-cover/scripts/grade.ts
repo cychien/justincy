@@ -9,7 +9,9 @@ import {
   PROJECT_ROOT,
   fail,
   parseArgs,
+  postPath,
   publicDir,
+  publicUrl,
   readFrontmatter,
   requirePost,
   workDir,
@@ -18,9 +20,9 @@ import {
 const USAGE = `Usage: node grade.ts <slug> <image> [--box <left,top,width,height>] [--focus attention|top|center|bottom|left|right] [--strength 0..1] [--preview [--label <name>]]
 
 Crops the image to 4:3, applies a gentle calming grade, and writes
-public/images/blog/<slug>/cover.webp. For review it also writes, under tmp/blog-cover/<slug>/previews/:
+public/images/<section>/<slug>/cover.webp. For review it also writes, under tmp/blog-cover/<slug>/previews/:
   <image>-card.png    the cover at card size
-  <image>-index.png   the cover beside the other posts' covers, as /blog shows them
+  <image>-index.png   the cover beside the other posts' covers, as the section index shows them
 --box cuts that region (in source pixels) first, to frame the subject tighter than a full-height crop.
 --strength defaults to 0.5. Use 0 when the image already sits well beside the others.
 --preview writes only the review images, so several picks or crops can be compared side by side;
@@ -52,7 +54,7 @@ const source = sharp(input).rotate();
 if (box) source.extract(box);
 const cropped = source.resize({ width: COVER_WIDTH, height: COVER_HEIGHT, fit: 'cover', position });
 
-// Takes the edge off loud images so covers sit together on /blog: less saturation,
+// Takes the edge off loud images so covers sit together on the section index: less saturation,
 // lifted blacks, softened highlights, and a faint neutral wash that nudges mixed
 // sources toward one another without imposing a palette.
 const graded = cropped
@@ -95,7 +97,7 @@ console.log(`Review ${path.relative(process.cwd(), previewPath)}`);
 console.log(`       ${path.relative(process.cwd(), indexPreviewPath)}`);
 if (!previewOnly) {
   console.log(
-    `\nFrontmatter:\nthumb: /images/blog/${slug}/cover.webp\nthumbAlt: <describe what is in the picture>`
+    `\nFrontmatter:\nthumb: ${publicUrl(slug)}/cover.webp\nthumbAlt: <describe what is in the picture>`
   );
 }
 
@@ -111,13 +113,13 @@ function parseBox(
   return { left, top, width, height };
 }
 
-// Newest first like /blog, this post outlined so it is easy to find among the others.
+// Newest first like the section index, this post outlined so it is easy to find among the others.
 async function renderIndexPreview(cover: Buffer, out: string): Promise<void> {
   const cardWidth = 360;
   const cardHeight = 270;
   const gap = 24;
-  const blogDir = path.join(PROJECT_ROOT, 'app/content/blog');
-  const others = readdirSync(blogDir)
+  const sectionDir = path.dirname(postPath(slug));
+  const others = readdirSync(sectionDir)
     .filter((file) => file.endsWith('.mdx'))
     .map((file) => file.replace(/\.mdx$/, ''))
     .filter((other) => other !== slug)

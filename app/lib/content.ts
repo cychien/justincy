@@ -5,3 +5,7 @@
 export function slugFromModulePath(modulePath: string): string {
   return modulePath.replace(/^.*\//, '').replace(/\.mdx$/, '');
 }
+
+export function sectionFromModulePath(modulePath: string): string {
+  return modulePath.split('/').at(-2)!;
+}

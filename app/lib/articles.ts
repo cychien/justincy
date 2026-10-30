@@ -1,5 +1,16 @@
-/** The frontmatter contract for app/content/blog - read by both the index and the post. */
-export interface BlogPostFrontmatter {
+export const ARTICLE_SECTIONS = {
+  software: { title: '軟體白話文', description: '用白話講清楚軟體與技術' },
+  blog: { title: 'Blog', description: '人生感悟及日常分享' },
+} as const;
+
+export type ArticleSection = keyof typeof ARTICLE_SECTIONS;
+
+export function isArticleSection(value: string): value is ArticleSection {
+  return Object.hasOwn(ARTICLE_SECTIONS, value);
+}
+
+/** The frontmatter contract for every app/content/<section> - read by both the index and the post. */
+export interface ArticleFrontmatter {
   /** For a series part, the part's own title; the series name sits above it and is prepended in the page title. */
   title: string;
   date: string;
@@ -20,27 +31,27 @@ export interface BlogPostFrontmatter {
   series?: string;
 }
 
-export interface BlogPost {
+export interface Article {
   slug: string;
-  frontmatter: BlogPostFrontmatter;
+  frontmatter: ArticleFrontmatter;
 }
 
-export type BlogIndexEntry =
-  | { kind: 'post'; post: BlogPost }
-  | { kind: 'series'; name: string; parts: BlogPost[] };
+export type ArticleIndexEntry =
+  | { kind: 'post'; post: Article }
+  | { kind: 'series'; name: string; parts: Article[] };
 
-export function isVisible(frontmatter: BlogPostFrontmatter): boolean {
+export function isVisible(frontmatter: ArticleFrontmatter): boolean {
   return import.meta.env.DEV || !frontmatter.draft;
 }
 
-function byDateAscending(a: BlogPost, b: BlogPost): number {
+function byDateAscending(a: Article, b: Article): number {
   return (
     a.frontmatter.date.localeCompare(b.frontmatter.date) ||
     a.slug.localeCompare(b.slug, undefined, { numeric: true })
   );
 }
 
-export function seriesParts(posts: BlogPost[], name: string): BlogPost[] {
+export function seriesParts(posts: Article[], name: string): Article[] {
   return posts.filter(({ frontmatter }) => frontmatter.series === name).sort(byDateAscending);
 }
 
@@ -49,10 +60,10 @@ export function seriesPartTitle(series: string, title: string): string {
 }
 
 /** Newest first; a series takes one slot, dated by its latest part. */
-export function buildBlogIndex(posts: BlogPost[]): BlogIndexEntry[] {
+export function buildArticleIndex(posts: Article[]): ArticleIndexEntry[] {
   const seriesNames = new Set(posts.flatMap(({ frontmatter }) => frontmatter.series ?? []));
 
-  const entries: BlogIndexEntry[] = [
+  const entries: ArticleIndexEntry[] = [
     ...posts
       .filter(({ frontmatter }) => !frontmatter.series)
       .map((post) => ({ kind: 'post' as const, post })),
@@ -66,6 +77,6 @@ export function buildBlogIndex(posts: BlogPost[]): BlogIndexEntry[] {
   return entries.sort((a, b) => latestDate(b).localeCompare(latestDate(a)));
 }
 
-function latestDate(entry: BlogIndexEntry): string {
+function latestDate(entry: ArticleIndexEntry): string {
   return entry.kind === 'post' ? entry.post.frontmatter.date : entry.parts.at(-1)!.frontmatter.date;
 }

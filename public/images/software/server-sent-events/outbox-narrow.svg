@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="336" height="730" viewBox="0 0 336 730" role="img" aria-label="一般做法在存進資料庫和發布事件之間掛掉會漏送；Transactional Outbox 把訊息和待發布事件寫在同一個 transaction，由背景程式負責發布">
+<title>一般做法在存進資料庫和發布事件之間掛掉會漏送；Transactional Outbox 把訊息和待發布事件寫在同一個 transaction，由背景程式負責發布</title>
+
+<style>
+  .bg { fill: #fafafa; }
+  .card { fill: #ffffff; stroke: #e4e4e7; }
+  .box { fill: #ffffff; stroke: #a1a1aa; stroke-width: 1.25; }
+  .box-dim { fill: #fafafa; stroke: #d4d4d8; stroke-width: 1.25; }
+  .box-accent { fill: #eff6ff; stroke: #2563eb; stroke-width: 1.25; }
+  .group { fill: none; stroke: #a1a1aa; stroke-width: 1.25; stroke-dasharray: 4 3; }
+  .t { fill: #18181b; font: 500 13px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t-strong { fill: #18181b; font: 600 14px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t2 { fill: #52525b; font: 400 12.5px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t3 { fill: #a1a1aa; font: 400 11.5px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t-dim { fill: #a1a1aa; font: 500 13px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .code { fill: #52525b; font: 400 11.5px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .life { stroke: #d4d4d8; stroke-width: 1.25; stroke-dasharray: 3 3; }
+  .axis { stroke: #d4d4d8; stroke-width: 1; }
+  .line { stroke: #71717a; stroke-width: 1.5; fill: none; }
+  .line-dim { stroke: #d4d4d8; stroke-width: 1.5; fill: none; }
+  .ev { stroke: #2563eb; stroke-width: 1.75; fill: none; }
+  .bad { stroke: #dc2626; stroke-width: 1.5; fill: none; stroke-dasharray: 4 3; }
+  .bad-solid { stroke: #dc2626; stroke-width: 2; fill: none; }
+  .dot { fill: #2563eb; }
+  .band { fill: #2563eb; fill-opacity: 0.08; }
+  .hold { fill: #a1a1aa; fill-opacity: 0.35; }
+  .bar-bad { fill: #dc2626; }
+  .bar-ok { fill: #2563eb; }
+  .head-line { fill: #71717a; }
+  .head-ev { fill: #2563eb; }
+  .head-bad { fill: #dc2626; }
+  .head-dim { fill: #d4d4d8; }
+  @media (prefers-color-scheme: dark) {
+    .bg { fill: #18181b; }
+    .card { fill: #09090b; stroke: #27272a; }
+    .box { fill: #18181b; stroke: #52525b; }
+    .box-dim { fill: #18181b; stroke: #3f3f46; }
+    .box-accent { fill: #172554; stroke: #3b82f6; }
+    .group { stroke: #52525b; }
+    .t, .t-strong { fill: #fafafa; }
+    .t2, .code { fill: #a1a1aa; }
+    .t3, .t-dim { fill: #71717a; }
+    .life, .axis { stroke: #3f3f46; }
+    .line { stroke: #a1a1aa; }
+    .line-dim { stroke: #52525b; }
+    .ev { stroke: #3b82f6; }
+    .bad, .bad-solid { stroke: #ef4444; }
+    .dot, .bar-ok { fill: #3b82f6; }
+    .band { fill: #3b82f6; fill-opacity: 0.14; }
+    .hold { fill: #71717a; fill-opacity: 0.4; }
+    .bar-bad { fill: #ef4444; }
+    .head-line { fill: #a1a1aa; }
+    .head-ev { fill: #3b82f6; }
+    .head-bad { fill: #ef4444; }
+    .head-dim { fill: #52525b; }
+  }
+</style>
+<defs>
+  <marker id="a-line" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-line" d="M0 0 L10 5 L0 10 z"/></marker>
+  <marker id="a-ev" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-ev" d="M0 0 L10 5 L0 10 z"/></marker>
+  <marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-bad" d="M0 0 L10 5 L0 10 z"/></marker>
+  <marker id="a-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-dim" d="M0 0 L10 5 L0 10 z"/></marker>
+</defs>
+
+<rect class="bg" width="336" height="730"/>
+<rect class="card" x="16" y="16" width="304" height="305" rx="10"/>
+<text class="t-strong" x="32" y="44" text-anchor="start">一般做法</text>
+<rect class="box" x="32" y="60" width="88" height="40" rx="7"/><text class="t" x="76" y="84.5" text-anchor="middle">Server</text>
+<rect class="box" x="168" y="60" width="136" height="40" rx="7"/><text class="t" x="236" y="84.5" text-anchor="middle">資料庫</text>
+<rect class="box-accent" x="168" y="140" width="136" height="40" rx="7"/><text class="t" x="236" y="164.5" text-anchor="middle">Broker</text>
+<rect class="box" x="168" y="210" width="136" height="40" rx="7"/><text class="t" x="236" y="234.5" text-anchor="middle">各台 Server</text>
+<line class="line" x1="120" y1="80" x2="166" y2="80" marker-end="url(#a-line)"/>
+<text class="t2" x="144" y="72" text-anchor="middle">①</text>
+<path class="line" d="M 76.0 100 V 160 H 166" marker-end="url(#a-line)"/>
+<text class="t2" x="84" y="152" text-anchor="start">② 發布</text>
+<line class="bad-solid" x1="70" y1="122" x2="82" y2="134"/><line class="bad-solid" x1="70" y1="134" x2="82" y2="122"/>
+<line class="ev" x1="236" y1="180" x2="236" y2="208" marker-end="url(#a-ev)"/>
+<text class="t2" x="244" y="199" text-anchor="start">③</text>
+<text class="t3" x="32" y="280" text-anchor="start">① 存訊息，② 發布事件，③ 廣播。在 ①、② 之間掛</text><text class="t3" x="32" y="299" text-anchor="start">掉 (✕)，事件就不會即時送出。</text>
+<rect class="card" x="16" y="337" width="304" height="377" rx="10"/>
+<text class="t-strong" x="32" y="365" text-anchor="start">Transactional Outbox</text>
+<rect class="group" x="160" y="385" width="152" height="96" rx="8"/>
+<text class="t3" x="236" y="402" text-anchor="middle">同一個 transaction</text>
+<rect class="box" x="168" y="411" width="136" height="28" rx="7"/><text class="t" x="236" y="429.5" text-anchor="middle">訊息</text>
+<rect class="box" x="168" y="445" width="136" height="28" rx="7"/><text class="t" x="236" y="463.5" text-anchor="middle">待發布事件</text>
+<rect class="box" x="32" y="439" width="88" height="40" rx="7"/><text class="t" x="76" y="463.5" text-anchor="middle">Server</text>
+<line class="line" x1="120" y1="459" x2="158" y2="459" marker-end="url(#a-line)"/>
+<text class="t2" x="140" y="451" text-anchor="middle">①</text>
+<rect class="box" x="168" y="533" width="136" height="40" rx="7"/><text class="t" x="236" y="557.5" text-anchor="middle">背景程式</text>
+<line class="line" x1="208" y1="483" x2="208" y2="531" marker-end="url(#a-line)"/>
+<text class="t2" x="200" y="511" text-anchor="end">②</text>
+<line class="line" x1="264" y1="533" x2="264" y2="485" marker-end="url(#a-line)"/>
+<text class="t2" x="272" y="511" text-anchor="start">③</text>
+<rect class="box-accent" x="168" y="603" width="136" height="40" rx="7"/><text class="t" x="236" y="627.5" text-anchor="middle">Broker</text>
+<line class="ev" x1="236" y1="573" x2="236" y2="601" marker-end="url(#a-ev)"/>
+<text class="t2" x="244" y="593" text-anchor="start">②</text>
+<text class="t3" x="32" y="673" text-anchor="start">① 寫入，② 讀取並發布，③ 標記已發布。Server</text><text class="t3" x="32" y="692" text-anchor="start">在哪一步掛掉，待發布事件都還在資料庫裡。</text>
+</svg>

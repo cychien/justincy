@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="672" height="268" viewBox="0 0 672 268" role="img" aria-label="固定的 retry 讓所有 Client 在同一秒重連；隨機的 retry 把重連分散在 3 到 7 秒之間">
+<title>固定的 retry 讓所有 Client 在同一秒重連；隨機的 retry 把重連分散在 3 到 7 秒之間</title>
+
+<style>
+  .bg { fill: #fafafa; }
+  .card { fill: #ffffff; stroke: #e4e4e7; }
+  .box { fill: #ffffff; stroke: #a1a1aa; stroke-width: 1.25; }
+  .box-dim { fill: #fafafa; stroke: #d4d4d8; stroke-width: 1.25; }
+  .box-accent { fill: #eff6ff; stroke: #2563eb; stroke-width: 1.25; }
+  .group { fill: none; stroke: #a1a1aa; stroke-width: 1.25; stroke-dasharray: 4 3; }
+  .t { fill: #18181b; font: 500 13px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t-strong { fill: #18181b; font: 600 14px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t2 { fill: #52525b; font: 400 12.5px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t3 { fill: #a1a1aa; font: 400 11.5px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t-dim { fill: #a1a1aa; font: 500 13px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .code { fill: #52525b; font: 400 11.5px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .life { stroke: #d4d4d8; stroke-width: 1.25; stroke-dasharray: 3 3; }
+  .axis { stroke: #d4d4d8; stroke-width: 1; }
+  .line { stroke: #71717a; stroke-width: 1.5; fill: none; }
+  .line-dim { stroke: #d4d4d8; stroke-width: 1.5; fill: none; }
+  .ev { stroke: #2563eb; stroke-width: 1.75; fill: none; }
+  .bad { stroke: #dc2626; stroke-width: 1.5; fill: none; stroke-dasharray: 4 3; }
+  .bad-solid { stroke: #dc2626; stroke-width: 2; fill: none; }
+  .dot { fill: #2563eb; }
+  .band { fill: #2563eb; fill-opacity: 0.08; }
+  .hold { fill: #a1a1aa; fill-opacity: 0.35; }
+  .bar-bad { fill: #dc2626; }
+  .bar-ok { fill: #2563eb; }
+  .head-line { fill: #71717a; }
+  .head-ev { fill: #2563eb; }
+  .head-bad { fill: #dc2626; }
+  .head-dim { fill: #d4d4d8; }
+  @media (prefers-color-scheme: dark) {
+    .bg { fill: #18181b; }
+    .card { fill: #09090b; stroke: #27272a; }
+    .box { fill: #18181b; stroke: #52525b; }
+    .box-dim { fill: #18181b; stroke: #3f3f46; }
+    .box-accent { fill: #172554; stroke: #3b82f6; }
+    .group { stroke: #52525b; }
+    .t, .t-strong { fill: #fafafa; }
+    .t2, .code { fill: #a1a1aa; }
+    .t3, .t-dim { fill: #71717a; }
+    .life, .axis { stroke: #3f3f46; }
+    .line { stroke: #a1a1aa; }
+    .line-dim { stroke: #52525b; }
+    .ev { stroke: #3b82f6; }
+    .bad, .bad-solid { stroke: #ef4444; }
+    .dot, .bar-ok { fill: #3b82f6; }
+    .band { fill: #3b82f6; fill-opacity: 0.14; }
+    .hold { fill: #71717a; fill-opacity: 0.4; }
+    .bar-bad { fill: #ef4444; }
+    .head-line { fill: #a1a1aa; }
+    .head-ev { fill: #3b82f6; }
+    .head-bad { fill: #ef4444; }
+    .head-dim { fill: #52525b; }
+  }
+</style>
+<defs>
+  <marker id="a-line" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-line" d="M0 0 L10 5 L0 10 z"/></marker>
+  <marker id="a-ev" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-ev" d="M0 0 L10 5 L0 10 z"/></marker>
+  <marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-bad" d="M0 0 L10 5 L0 10 z"/></marker>
+  <marker id="a-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-dim" d="M0 0 L10 5 L0 10 z"/></marker>
+</defs>
+
+<rect class="bg" width="672" height="268"/>
+<rect class="card" x="16" y="16" width="312" height="236" rx="10"/>
+<text class="t3" x="44" y="40" text-anchor="start">同時重連數</text>
+<line class="axis" x1="44" y1="46" x2="44" y2="156"/>
+<line class="axis" x1="44" y1="156" x2="304" y2="156"/>
+<text class="t3" x="44" y="172" text-anchor="middle">0s</text>
+<text class="t3" x="122" y="172" text-anchor="middle">3s</text>
+<text class="t3" x="226" y="172" text-anchor="middle">7s</text>
+<text class="t3" x="304" y="172" text-anchor="end">重連時間</text>
+<path class="bar-bad" d="M 117 156 V 56 Q 117 52 121 52 H 123 Q 127 52 127 56 V 156 Z"/>
+<text class="t2" x="136" y="60" text-anchor="start">全部在同一秒回來</text>
+<text class="t3" x="36" y="196" text-anchor="start">固定的 retry</text><text class="t2" x="36" y="216" text-anchor="start">所有 Client 用同一個等待時間，重連 request</text><text class="t2" x="36" y="235" text-anchor="start">在同一刻湧入。</text>
+<rect class="card" x="344" y="16" width="312" height="236" rx="10"/>
+<text class="t3" x="372" y="40" text-anchor="start">同時重連數</text>
+<line class="axis" x1="372" y1="46" x2="372" y2="156"/>
+<line class="axis" x1="372" y1="156" x2="632" y2="156"/>
+<text class="t3" x="372" y="172" text-anchor="middle">0s</text>
+<text class="t3" x="450" y="172" text-anchor="middle">3s</text>
+<text class="t3" x="554" y="172" text-anchor="middle">7s</text>
+<text class="t3" x="632" y="172" text-anchor="end">重連時間</text>
+<path class="bar-ok" d="M 445 156 V 148.56 Q 445 144.56 449 144.56 H 451 Q 455 144.56 455 148.56 V 156 Z"/>
+<path class="bar-ok" d="M 458 156 V 145.44 Q 458 141.44 462 141.44 H 464 Q 468 141.44 468 145.44 V 156 Z"/>
+<path class="bar-ok" d="M 471 156 V 147.52 Q 471 143.52 475 143.52 H 477 Q 481 143.52 481 147.52 V 156 Z"/>
+<path class="bar-ok" d="M 484 156 V 144.4 Q 484 140.4 488 140.4 H 490 Q 494 140.4 494 144.4 V 156 Z"/>
+<path class="bar-ok" d="M 497 156 V 146.48 Q 497 142.48 501 142.48 H 503 Q 507 142.48 507 146.48 V 156 Z"/>
+<path class="bar-ok" d="M 510 156 V 147.52 Q 510 143.52 514 143.52 H 516 Q 520 143.52 520 147.52 V 156 Z"/>
+<path class="bar-ok" d="M 523 156 V 145.44 Q 523 141.44 527 141.44 H 529 Q 533 141.44 533 145.44 V 156 Z"/>
+<path class="bar-ok" d="M 536 156 V 148.56 Q 536 144.56 540 144.56 H 542 Q 546 144.56 546 148.56 V 156 Z"/>
+<text class="t2" x="502" y="126" text-anchor="middle">分散在 3 到 7 秒之間</text>
+<text class="t3" x="364" y="196" text-anchor="start">隨機的 retry</text><text class="t2" x="364" y="216" text-anchor="start">每條連線拿到不同的等待時間，負載攤平，後端</text><text class="t2" x="364" y="235" text-anchor="start">能逐步恢復。</text>
+</svg>

@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="672" height="524" viewBox="0 0 672 524" role="img" aria-label="同一段時間內，Server 有兩筆新資料時，polling、long polling、SSE、WebSocket 各自怎麼把資料送到 Client">
+<title>同一段時間內，Server 有兩筆新資料時，polling、long polling、SSE、WebSocket 各自怎麼把資料送到 Client</title>
+
+<style>
+  .bg { fill: #fafafa; }
+  .card { fill: #ffffff; stroke: #e4e4e7; }
+  .box { fill: #ffffff; stroke: #a1a1aa; stroke-width: 1.25; }
+  .box-dim { fill: #fafafa; stroke: #d4d4d8; stroke-width: 1.25; }
+  .box-accent { fill: #eff6ff; stroke: #2563eb; stroke-width: 1.25; }
+  .group { fill: none; stroke: #a1a1aa; stroke-width: 1.25; stroke-dasharray: 4 3; }
+  .t { fill: #18181b; font: 500 13px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t-strong { fill: #18181b; font: 600 14px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t2 { fill: #52525b; font: 400 12.5px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t3 { fill: #a1a1aa; font: 400 11.5px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t-dim { fill: #a1a1aa; font: 500 13px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .code { fill: #52525b; font: 400 11.5px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .life { stroke: #d4d4d8; stroke-width: 1.25; stroke-dasharray: 3 3; }
+  .axis { stroke: #d4d4d8; stroke-width: 1; }
+  .line { stroke: #71717a; stroke-width: 1.5; fill: none; }
+  .line-dim { stroke: #d4d4d8; stroke-width: 1.5; fill: none; }
+  .ev { stroke: #2563eb; stroke-width: 1.75; fill: none; }
+  .bad { stroke: #dc2626; stroke-width: 1.5; fill: none; stroke-dasharray: 4 3; }
+  .bad-solid { stroke: #dc2626; stroke-width: 2; fill: none; }
+  .dot { fill: #2563eb; }
+  .band { fill: #2563eb; fill-opacity: 0.08; }
+  .hold { fill: #a1a1aa; fill-opacity: 0.35; }
+  .bar-bad { fill: #dc2626; }
+  .bar-ok { fill: #2563eb; }
+  .head-line { fill: #71717a; }
+  .head-ev { fill: #2563eb; }
+  .head-bad { fill: #dc2626; }
+  .head-dim { fill: #d4d4d8; }
+  @media (prefers-color-scheme: dark) {
+    .bg { fill: #18181b; }
+    .card { fill: #09090b; stroke: #27272a; }
+    .box { fill: #18181b; stroke: #52525b; }
+    .box-dim { fill: #18181b; stroke: #3f3f46; }
+    .box-accent { fill: #172554; stroke: #3b82f6; }
+    .group { stroke: #52525b; }
+    .t, .t-strong { fill: #fafafa; }
+    .t2, .code { fill: #a1a1aa; }
+    .t3, .t-dim { fill: #71717a; }
+    .life, .axis { stroke: #3f3f46; }
+    .line { stroke: #a1a1aa; }
+    .line-dim { stroke: #52525b; }
+    .ev { stroke: #3b82f6; }
+    .bad, .bad-solid { stroke: #ef4444; }
+    .dot, .bar-ok { fill: #3b82f6; }
+    .band { fill: #3b82f6; fill-opacity: 0.14; }
+    .hold { fill: #71717a; fill-opacity: 0.4; }
+    .bar-bad { fill: #ef4444; }
+    .head-line { fill: #a1a1aa; }
+    .head-ev { fill: #3b82f6; }
+    .head-bad { fill: #ef4444; }
+    .head-dim { fill: #52525b; }
+  }
+</style>
+<defs>
+  <marker id="a-line" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-line" d="M0 0 L10 5 L0 10 z"/></marker>
+  <marker id="a-ev" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-ev" d="M0 0 L10 5 L0 10 z"/></marker>
+  <marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-bad" d="M0 0 L10 5 L0 10 z"/></marker>
+  <marker id="a-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-dim" d="M0 0 L10 5 L0 10 z"/></marker>
+</defs>
+
+<rect class="bg" width="672" height="524"/>
+<text class="t3" x="644" y="26" text-anchor="end">時間 →</text>
+<rect class="card" x="16" y="36" width="640" height="94" rx="10"/>
+<text class="t-strong" x="32" y="89" text-anchor="start">Polling</text>
+<text class="t3" x="148" y="68" text-anchor="end">Client</text>
+<text class="t3" x="148" y="110" text-anchor="end">Server</text>
+<line class="axis" x1="156" y1="64" x2="644" y2="64"/>
+<line class="axis" x1="156" y1="106" x2="644" y2="106"/>
+<circle class="dot" cx="302.4" cy="106" r="4"/>
+<circle class="dot" cx="507.36" cy="106" r="4"/>
+<line class="line" x1="175.52" y1="64" x2="187.52" y2="104" marker-end="url(#a-line)"/>
+<line class="line-dim" x1="189.52" y1="106" x2="201.52" y2="66" marker-end="url(#a-dim)"/>
+<line class="line" x1="273.12" y1="64" x2="285.12" y2="104" marker-end="url(#a-line)"/>
+<line class="line-dim" x1="287.12" y1="106" x2="299.12" y2="66" marker-end="url(#a-dim)"/>
+<line class="line" x1="370.72" y1="64" x2="382.72" y2="104" marker-end="url(#a-line)"/>
+<line class="ev" x1="384.72" y1="106" x2="396.72" y2="66" marker-end="url(#a-ev)"/>
+<line class="line" x1="468.32" y1="64" x2="480.32" y2="104" marker-end="url(#a-line)"/>
+<line class="line-dim" x1="482.32" y1="106" x2="494.32" y2="66" marker-end="url(#a-dim)"/>
+<line class="line" x1="565.92" y1="64" x2="577.92" y2="104" marker-end="url(#a-line)"/>
+<line class="ev" x1="579.92" y1="106" x2="591.92" y2="66" marker-end="url(#a-ev)"/>
+<rect class="card" x="16" y="140" width="640" height="94" rx="10"/>
+<text class="t-strong" x="32" y="193" text-anchor="start">Long polling</text>
+<text class="t3" x="148" y="172" text-anchor="end">Client</text>
+<text class="t3" x="148" y="214" text-anchor="end">Server</text>
+<line class="axis" x1="156" y1="168" x2="644" y2="168"/>
+<line class="axis" x1="156" y1="210" x2="644" y2="210"/>
+<circle class="dot" cx="302.4" cy="210" r="4"/>
+<circle class="dot" cx="507.36" cy="210" r="4"/>
+<line class="line" x1="175.52" y1="168" x2="187.52" y2="208" marker-end="url(#a-line)"/>
+<rect class="hold" x="189.52" y="207" width="112.88" height="6" rx="3"/>
+<line class="ev" x1="302.4" y1="210" x2="314.4" y2="170" marker-end="url(#a-ev)"/>
+<line class="line" x1="320.4" y1="168" x2="332.4" y2="208" marker-end="url(#a-line)"/>
+<rect class="hold" x="334.4" y="207" width="172.96" height="6" rx="3"/>
+<line class="ev" x1="507.36" y1="210" x2="519.36" y2="170" marker-end="url(#a-ev)"/>
+<line class="line" x1="525.36" y1="168" x2="537.36" y2="208" marker-end="url(#a-line)"/>
+<rect class="hold" x="539.36" y="207" width="104.64" height="6" rx="3"/>
+<rect class="card" x="16" y="244" width="640" height="94" rx="10"/>
+<text class="t-strong" x="32" y="297" text-anchor="start">SSE</text>
+<text class="t3" x="148" y="276" text-anchor="end">Client</text>
+<text class="t3" x="148" y="318" text-anchor="end">Server</text>
+<line class="axis" x1="156" y1="272" x2="644" y2="272"/>
+<line class="axis" x1="156" y1="314" x2="644" y2="314"/>
+<circle class="dot" cx="302.4" cy="314" r="4"/>
+<circle class="dot" cx="507.36" cy="314" r="4"/>
+<rect class="band" x="187.52" y="272" width="456.48" height="42"/>
+<line class="line" x1="175.52" y1="272" x2="187.52" y2="312" marker-end="url(#a-line)"/>
+<line class="ev" x1="302.4" y1="314" x2="308.4" y2="274" marker-end="url(#a-ev)"/>
+<line class="ev" x1="507.36" y1="314" x2="513.36" y2="274" marker-end="url(#a-ev)"/>
+<rect class="card" x="16" y="348" width="640" height="94" rx="10"/>
+<text class="t-strong" x="32" y="401" text-anchor="start">WebSocket</text>
+<text class="t3" x="148" y="380" text-anchor="end">Client</text>
+<text class="t3" x="148" y="422" text-anchor="end">Server</text>
+<line class="axis" x1="156" y1="376" x2="644" y2="376"/>
+<line class="axis" x1="156" y1="418" x2="644" y2="418"/>
+<circle class="dot" cx="302.4" cy="418" r="4"/>
+<circle class="dot" cx="507.36" cy="418" r="4"/>
+<rect class="band" x="187.52" y="376" width="456.48" height="42"/>
+<line class="line" x1="175.52" y1="376" x2="187.52" y2="416" marker-end="url(#a-line)"/>
+<line class="ev" x1="302.4" y1="418" x2="308.4" y2="378" marker-end="url(#a-ev)"/>
+<line class="ev" x1="507.36" y1="418" x2="513.36" y2="378" marker-end="url(#a-ev)"/>
+<line class="line" x1="409.76" y1="376" x2="415.76" y2="416" marker-end="url(#a-line)"/>
+<circle class="dot" cx="44" cy="474" r="4"/>
+<text class="t2" x="66" y="478" text-anchor="start">Server 有新資料</text>
+<line class="ev" x1="234.667" y1="474" x2="258.667" y2="474" marker-end="url(#a-ev)"/>
+<text class="t2" x="268.667" y="478" text-anchor="start">送出新資料</text>
+<line class="line" x1="437.333" y1="474" x2="461.333" y2="474" marker-end="url(#a-line)"/>
+<text class="t2" x="471.333" y="478" text-anchor="start">request / Client 送出</text>
+<line class="line-dim" x1="32" y1="496" x2="56" y2="496" marker-end="url(#a-dim)"/>
+<text class="t2" x="66" y="500" text-anchor="start">空的 response</text>
+<rect class="hold" x="234.667" y="493" width="24" height="6" rx="3"/>
+<text class="t2" x="268.667" y="500" text-anchor="start">Server 等待中</text>
+<rect class="band" x="437.333" y="489" width="24" height="14"/>
+<text class="t2" x="471.333" y="500" text-anchor="start">連線開著</text>
+</svg>

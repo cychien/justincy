@@ -1,16 +1,17 @@
 import { Link } from 'react-router';
 
 import { DraftBadge } from '~/components/DraftBadge';
-import type { BlogPost } from '~/lib/blog';
+import type { Article, ArticleSection } from '~/lib/articles';
 import { cn } from '~/lib/utils';
 
 interface SeriesNavProps {
   name: string;
-  parts: BlogPost[];
+  section: ArticleSection;
+  parts: Article[];
   currentSlug: string;
 }
 
-export function SeriesNav({ name, parts, currentSlug }: SeriesNavProps) {
+export function SeriesNav({ name, section, parts, currentSlug }: SeriesNavProps) {
   return (
     <nav
       aria-label={`${name} 系列文章`}
@@ -25,7 +26,7 @@ export function SeriesNav({ name, parts, currentSlug }: SeriesNavProps) {
           return (
             <li key={slug}>
               <Link
-                to={`/blog/${slug}`}
+                to={`/${section}/${slug}`}
                 aria-current={current ? 'page' : undefined}
                 className={cn(
                   'focus-visible:ring-ring flex items-center gap-3.5 px-5 py-3 transition-colors focus-visible:ring-2 focus-visible:outline-hidden focus-visible:ring-inset',

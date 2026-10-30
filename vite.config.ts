@@ -18,6 +18,10 @@ const publicDir = path.resolve(import.meta.dirname, 'public');
 
 export default defineConfig({
   server: {
+    // Vite's default 5173 and the ports it falls back to are ones other local dev tools
+    // remember and keep calling; a fixed, strict port keeps their traffic off this site.
+    port: 4300,
+    strictPort: true,
     allowedHosts: true,
   },
   plugins: [

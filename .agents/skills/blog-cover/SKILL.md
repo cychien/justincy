@@ -1,17 +1,19 @@
 ---
 name: blog-cover
-description: Make the cover image and the OG (social preview) image for a post in app/content/blog. Use this whenever the user asks for a cover, thumbnail, hero, card image, OG image, social preview, or "a picture for this post", wants one redone or recolored, or has just finished a blog post that still has no thumb in its frontmatter.
+description: Make the cover image and the OG (social preview) image for a post in app/content/blog or app/content/software. Use this whenever the user asks for a cover, thumbnail, hero, card image, OG image, social preview, or "a picture for this post", wants one redone or recolored, or has just finished a blog post that still has no thumb in its frontmatter.
 ---
 
 # Blog cover
 
 Produce, for one post, everything the index card and link previews need:
 
-| Output                                   | Path                                                            | Size          |
-| ---------------------------------------- | --------------------------------------------------------------- | ------------- |
-| Cover (card image, no text on it)        | `public/images/blog/<slug>/cover.webp`                          | 1440x1080 4:3 |
-| OG image (template: title + small cover) | `public/images/blog/<slug>/og.jpg`                              | 1200x630      |
-| Frontmatter                              | `thumb`, `thumbAlt`, `ogImage` in `app/content/blog/<slug>.mdx` |               |
+| Output                                   | Path                                                                 | Size          |
+| ---------------------------------------- | -------------------------------------------------------------------- | ------------- |
+| Cover (card image, no text on it)        | `public/images/<section>/<slug>/cover.webp`                          | 1440x1080 4:3 |
+| OG image (template: title + small cover) | `public/images/<section>/<slug>/og.jpg`                              | 1200x630      |
+| Frontmatter                              | `thumb`, `thumbAlt`, `ogImage` in `app/content/<section>/<slug>.mdx` |               |
+
+`<section>` is the content folder holding the post (`blog` or `software`); its index lives at `/<section>`, and the scripts find it from the slug.
 
 Work files go to `tmp/blog-cover/<slug>/`, which is gitignored. Run every script from the project root as `node $S/<script>.ts` with `S=.agents/skills/blog-cover/scripts`; each prints usage when called without arguments.
 
@@ -21,7 +23,7 @@ Prerequisites: macOS with the Xcode command line tools (`swiftc`; `cutout.ts` li
 
 Judge every decision in this order. A later concern never overrides an earlier one.
 
-1. **It says what the post is about at a glance.** Someone scrolling `/blog` who has not read the post should recognise its subject from the cover alone. Concrete beats symbolic: a post about a person shows that person, a post about a tool shows the tool. A metaphor, diagram or mood shot that only makes sense after reading fails this test, however handsome it is. A person must look as readers know them now, which means as they appear in the post's own video or images when it has any: same face, hair and glasses.
+1. **It says what the post is about at a glance.** Someone scrolling `/<section>` who has not read the post should recognise its subject from the cover alone. Concrete beats symbolic: a post about a person shows that person, a post about a tool shows the tool. A metaphor, diagram or mood shot that only makes sense after reading fails this test, however handsome it is. A person must look as readers know them now, which means as they appear in the post's own video or images when it has any: same face, hair and glasses.
 2. **It is real.** A real person or thing appears only in real photographs or video frames, never generated, and never edited by `image_gen`, which redraws every pixel and so changes the face even when asked only to remove a logo. A likeness of a real person is a fabrication, however close.
 3. **It is a picture the post does not already show.** The cover sits above the post, so a reader meets it and then meets the post's own images and the poster frame of every embedded video. Repeating one of them, even re-cropped or on a new background, makes the cover feel like a placeholder.
 4. **It reads as a card.** One clear subject that survives at about 360px wide, no burned-in captions, logos or watermarks, and no title text, since the OG image carries the title.
@@ -44,7 +46,7 @@ Collect into `tmp/blog-cover/<slug>/material/`, and spend the effort here: the c
 - **Other videos of the subject**: talks, interviews, podcasts, streams. `yt-dlp --flat-playlist --print "%(id)s %(title)s" "ytsearch10:<name> podcast"` (or `interview`) finds them, and cuts through namesakes better than web search; webcam interviews give sharper, closer frames than conference stages. Pull frames with `node $S/frames.ts <slug> <youtube-id>` and read the `sheet.png` it names; each video and range gets its own folder. Talks often cut to screen share; when the sheet is mostly slides, rerun with `--from`/`--to` around the stretch where the person fills the frame.
 - **Anything the user attached.**
 
-Save what the reader already sees as references only: the images in the post under `public/images/blog/<slug>/`, and the poster of each embedded YouTube video, `https://i.ytimg.com/vi/<id>/maxresdefault.jpg`, which the embed shows until it plays. They tell you what the subject looks like, but they cannot be the cover, and neither can a frame of the embedded video from the poster's camera angle.
+Save what the reader already sees as references only: the images in the post under `public/images/<section>/<slug>/`, and the poster of each embedded YouTube video, `https://i.ytimg.com/vi/<id>/maxresdefault.jpg`, which the embed shows until it plays. They tell you what the subject looks like, but they cannot be the cover, and neither can a frame of the embedded video from the poster's camera angle.
 
 Open the promising shots at full size and pick up to three, from different sources or moments. For a person, prefer a natural, calm expression, eyes open, face sharp and unobstructed, a head-and-shoulders or waist-up framing, and a frame that does not cut them at the sides. The subject should be at least about 700px tall in the source, or it turns soft on the cover; a sharp webcam frame beats a blurry stage photo.
 
@@ -117,12 +119,12 @@ The template puts the title and date on the left and the cover, small, on the ri
 Add to the frontmatter, after `date`, or update the fields already there:
 
 ```yaml
-thumb: /images/blog/<slug>/cover.webp
+thumb: /images/<section>/<slug>/cover.webp
 thumbAlt: <what is literally in the picture, in the post's language>
-ogImage: /images/blog/<slug>/og.jpg
+ogImage: /images/<section>/<slug>/og.jpg
 ```
 
-`thumbAlt` is read aloud by screen readers; describe the picture, not the post, and rewrite it whenever the picture changes. Then open `/blog` on the dev server (`pnpm dev`) and look at the card in place.
+`thumbAlt` is read aloud by screen readers; describe the picture, not the post, and rewrite it whenever the picture changes. Then open `/<section>` on the dev server (`pnpm dev`) and look at the card in place.
 
 ## Report
 
@@ -133,7 +135,7 @@ Cover for <slug>
 - Pick: <candidate> - <why, in terms of the criteria>
 - Other candidates: tmp/blog-cover/<slug>/candidates/<a>.png, <b>.png
 - Comparison: tmp/blog-cover/<slug>/previews/compare.png
-- Files: public/images/blog/<slug>/cover.webp, og.jpg
+- Files: public/images/<section>/<slug>/cover.webp, og.jpg
 - Frontmatter updated: thumb, thumbAlt, ogImage
 ```
 

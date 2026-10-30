@@ -7,7 +7,7 @@ import { fail, parseArgs, requirePost, workDir } from './lib.ts';
 
 const USAGE = `Usage: node compare.ts <slug> <image>... [--out <name>]
 
-Lays the given candidates side by side at card size (360px wide, as /blog shows them), each
+Lays the given candidates side by side at card size (360px wide, as the section index shows them), each
 labelled with its file name, and writes tmp/blog-cover/<slug>/previews/<name>.png
 (default compare.png). Use it to judge candidates against each other, and to show the user
 the options in one picture.`;

@@ -1,13 +1,15 @@
 import { ArrowRightCircleIcon } from '@heroicons/react/16/solid';
 import { Link } from 'react-router';
 
+import { ARTICLE_SECTIONS } from '~/lib/articles';
 import { cn } from '~/lib/utils';
 
 const SECTIONS = [
-  { label: 'Components', to: '/components', blurb: 'UI 元件美觀與易用性的探索' },
-  { label: 'Design', to: '/design', blurb: 'UI 作品、設計方法與筆記' },
-  { label: 'System', to: '/system', blurb: '如何把系統做得穩固、安全、可擴展' },
-  { label: 'Blog', to: '/blog', blurb: '人生感悟及日常分享' },
+  {
+    label: ARTICLE_SECTIONS.software.title,
+    to: '/software',
+    blurb: ARTICLE_SECTIONS.software.description,
+  },
 ];
 
 const EMPHASIS_STYLE = 'text-foreground font-[550]';

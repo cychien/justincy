@@ -3,14 +3,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router';
 
 import { Logo } from '~/components/Logo';
+import { ARTICLE_SECTIONS } from '~/lib/articles';
 import { cn } from '~/lib/utils';
 
 const NAV_ITEMS = [
-  { label: 'About', to: '/' },
-  { label: 'Components', to: '/components' },
-  { label: 'Design', to: '/design' },
-  { label: 'System', to: '/system' },
-  { label: 'Blog', to: '/blog' },
+  { label: '關於我', to: '/' },
+  { label: ARTICLE_SECTIONS.software.title, to: '/software' },
 ];
 
 const ICON_BUTTON_STYLE =

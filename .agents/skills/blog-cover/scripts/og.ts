@@ -13,6 +13,7 @@ import {
   fail,
   parseArgs,
   publicDir,
+  publicUrl,
   readFrontmatter,
   requirePost,
   workDir,
@@ -21,7 +22,7 @@ import {
 const USAGE = `Usage: node og.ts <slug> [--title "<override>"] [--cover <image>]
 
 Renders assets/og-template.html with the post's title, date and cover through headless
-Chrome and writes public/images/blog/<slug>/og.jpg (1200x630).`;
+Chrome and writes public/images/<section>/<slug>/og.jpg (1200x630).`;
 
 const { positional, flags } = parseArgs(process.argv.slice(2));
 const [slug] = positional;
@@ -83,7 +84,7 @@ await sharp(shotPath)
 
 console.log(`OG image ${path.relative(process.cwd(), ogPath)} (${OG_WIDTH}x${OG_HEIGHT})`);
 console.log(`Source   ${path.relative(process.cwd(), htmlPath)}`);
-console.log(`\nFrontmatter:\nogImage: /images/blog/${slug}/og.jpg`);
+console.log(`\nFrontmatter:\nogImage: ${publicUrl(slug)}/og.jpg`);
 
 function escapeHtml(value: string): string {
   return value.replace(

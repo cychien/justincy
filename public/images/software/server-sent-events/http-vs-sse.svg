@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="672" height="340" viewBox="0 0 672 340" role="img" aria-label="一般 HTTP 回完 response 就關閉連線；SSE 保持連線，Server 有新資料就沿著同一條連線推給 Client">
+<title>一般 HTTP 回完 response 就關閉連線；SSE 保持連線，Server 有新資料就沿著同一條連線推給 Client</title>
+
+<style>
+  .bg { fill: #fafafa; }
+  .card { fill: #ffffff; stroke: #e4e4e7; }
+  .box { fill: #ffffff; stroke: #a1a1aa; stroke-width: 1.25; }
+  .box-dim { fill: #fafafa; stroke: #d4d4d8; stroke-width: 1.25; }
+  .box-accent { fill: #eff6ff; stroke: #2563eb; stroke-width: 1.25; }
+  .group { fill: none; stroke: #a1a1aa; stroke-width: 1.25; stroke-dasharray: 4 3; }
+  .t { fill: #18181b; font: 500 13px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t-strong { fill: #18181b; font: 600 14px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t2 { fill: #52525b; font: 400 12.5px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t3 { fill: #a1a1aa; font: 400 11.5px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t-dim { fill: #a1a1aa; font: 500 13px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .code { fill: #52525b; font: 400 11.5px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .life { stroke: #d4d4d8; stroke-width: 1.25; stroke-dasharray: 3 3; }
+  .axis { stroke: #d4d4d8; stroke-width: 1; }
+  .line { stroke: #71717a; stroke-width: 1.5; fill: none; }
+  .line-dim { stroke: #d4d4d8; stroke-width: 1.5; fill: none; }
+  .ev { stroke: #2563eb; stroke-width: 1.75; fill: none; }
+  .bad { stroke: #dc2626; stroke-width: 1.5; fill: none; stroke-dasharray: 4 3; }
+  .bad-solid { stroke: #dc2626; stroke-width: 2; fill: none; }
+  .dot { fill: #2563eb; }
+  .band { fill: #2563eb; fill-opacity: 0.08; }
+  .hold { fill: #a1a1aa; fill-opacity: 0.35; }
+  .bar-bad { fill: #dc2626; }
+  .bar-ok { fill: #2563eb; }
+  .head-line { fill: #71717a; }
+  .head-ev { fill: #2563eb; }
+  .head-bad { fill: #dc2626; }
+  .head-dim { fill: #d4d4d8; }
+  @media (prefers-color-scheme: dark) {
+    .bg { fill: #18181b; }
+    .card { fill: #09090b; stroke: #27272a; }
+    .box { fill: #18181b; stroke: #52525b; }
+    .box-dim { fill: #18181b; stroke: #3f3f46; }
+    .box-accent { fill: #172554; stroke: #3b82f6; }
+    .group { stroke: #52525b; }
+    .t, .t-strong { fill: #fafafa; }
+    .t2, .code { fill: #a1a1aa; }
+    .t3, .t-dim { fill: #71717a; }
+    .life, .axis { stroke: #3f3f46; }
+    .line { stroke: #a1a1aa; }
+    .line-dim { stroke: #52525b; }
+    .ev { stroke: #3b82f6; }
+    .bad, .bad-solid { stroke: #ef4444; }
+    .dot, .bar-ok { fill: #3b82f6; }
+    .band { fill: #3b82f6; fill-opacity: 0.14; }
+    .hold { fill: #71717a; fill-opacity: 0.4; }
+    .bar-bad { fill: #ef4444; }
+    .head-line { fill: #a1a1aa; }
+    .head-ev { fill: #3b82f6; }
+    .head-bad { fill: #ef4444; }
+    .head-dim { fill: #52525b; }
+  }
+</style>
+<defs>
+  <marker id="a-line" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-line" d="M0 0 L10 5 L0 10 z"/></marker>
+  <marker id="a-ev" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-ev" d="M0 0 L10 5 L0 10 z"/></marker>
+  <marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-bad" d="M0 0 L10 5 L0 10 z"/></marker>
+  <marker id="a-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-dim" d="M0 0 L10 5 L0 10 z"/></marker>
+</defs>
+
+<rect class="bg" width="672" height="340"/>
+<rect class="card" x="16" y="16" width="312" height="308" rx="10"/>
+<text class="t-strong" x="36" y="44" text-anchor="start">一般 HTTP</text>
+<rect class="box" x="40" y="60" width="80" height="30" rx="7"/><text class="t" x="80" y="79.5" text-anchor="middle">Client</text>
+<rect class="box" x="224" y="60" width="80" height="30" rx="7"/><text class="t" x="264" y="79.5" text-anchor="middle">Server</text>
+<line class="life" x1="80" y1="90" x2="80" y2="304"/>
+<line class="life" x1="264" y1="90" x2="264" y2="304"/>
+<rect class="band" x="80" y="112" width="184" height="40"/>
+<line class="line" x1="80" y1="112" x2="262" y2="124" marker-end="url(#a-line)"/>
+<text class="code" x="172" y="108" text-anchor="middle">request</text>
+<line class="line" x1="264" y1="140" x2="82" y2="152" marker-end="url(#a-line)"/>
+<text class="code" x="172" y="136" text-anchor="middle">response</text>
+<text class="t2" x="172" y="180" text-anchor="middle">回完就關閉連線</text>
+<text class="t3" x="172" y="242" text-anchor="middle">之後有新資料，要等 Client 再來問</text>
+<rect class="card" x="344" y="16" width="312" height="308" rx="10"/>
+<text class="t-strong" x="364" y="44" text-anchor="start">SSE</text>
+<rect class="box" x="368" y="60" width="80" height="30" rx="7"/><text class="t" x="408" y="79.5" text-anchor="middle">Client</text>
+<rect class="box" x="552" y="60" width="80" height="30" rx="7"/><text class="t" x="592" y="79.5" text-anchor="middle">Server</text>
+<line class="life" x1="408" y1="90" x2="408" y2="304"/>
+<line class="life" x1="592" y1="90" x2="592" y2="304"/>
+<rect class="band" x="408" y="112" width="184" height="184"/>
+<line class="line" x1="408" y1="112" x2="590" y2="124" marker-end="url(#a-line)"/>
+<text class="code" x="500" y="108" text-anchor="middle">request</text>
+<line class="line" x1="592" y1="140" x2="410" y2="152" marker-end="url(#a-line)"/>
+<text class="code" x="500" y="136" text-anchor="middle">response</text>
+<text class="t2" x="500" y="180" text-anchor="middle">連線保持開著</text>
+<circle class="dot" cx="592" cy="216" r="3.5"/>
+<line class="ev" x1="586" y1="216" x2="410" y2="224" marker-end="url(#a-ev)"/>
+<text class="code" x="500" y="210" text-anchor="middle">data: 新資料 1</text>
+<circle class="dot" cx="592" cy="256" r="3.5"/>
+<line class="ev" x1="586" y1="256" x2="410" y2="264" marker-end="url(#a-ev)"/>
+<text class="code" x="500" y="250" text-anchor="middle">data: 新資料 2</text>
+<circle class="dot" cx="592" cy="296" r="3.5"/>
+<line class="ev" x1="586" y1="296" x2="410" y2="304" marker-end="url(#a-ev)"/>
+<text class="code" x="500" y="290" text-anchor="middle">data: 新資料 3</text>
+</svg>

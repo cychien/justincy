@@ -6,31 +6,51 @@ import { SeriesNav } from '~/components/SeriesNav';
 import { SeriesPager } from '~/components/SeriesPager';
 import { YouTube } from '~/components/YouTube';
 import {
+  isArticleSection,
   isVisible,
   seriesPartTitle,
   seriesParts,
-  type BlogPost,
-  type BlogPostFrontmatter,
-} from '~/lib/blog';
-import { slugFromModulePath } from '~/lib/content';
+  type Article,
+  type ArticleFrontmatter,
+  type ArticleSection,
+} from '~/lib/articles';
+import { sectionFromModulePath, slugFromModulePath } from '~/lib/content';
 import { publicOrigin } from '~/lib/origin';
 
-import type { Route } from './+types/blog.post';
+import type { Route } from './+types/articles.post';
 
 interface PostModule {
   default: (props: { components?: Record<string, React.ComponentType<never>> }) => React.ReactNode;
-  frontmatter: BlogPostFrontmatter;
+  frontmatter: ArticleFrontmatter;
 }
 
-const modules = import.meta.glob('../content/blog/*.mdx', {
+// The glob is a literal, so it has to name every key of ARTICLE_SECTIONS.
+const modules = import.meta.glob('../content/{software,blog}/*.mdx', {
   eager: true,
 }) as Record<string, PostModule>;
 
 const posts = new Map(
-  Object.entries(modules).map(([modulePath, mod]) => [slugFromModulePath(modulePath), mod])
+  Object.entries(modules).map(([modulePath, mod]) => [
+    postKey(sectionFromModulePath(modulePath), slugFromModulePath(modulePath)),
+    mod,
+  ])
 );
 
-const COMPONENTS = { YouTube };
+function postKey(section: string, slug: string): string {
+  return `${section}/${slug}`;
+}
+
+// A wide table scrolls inside its own box rather than crushing its columns to a
+// character each or pushing the page sideways on a phone.
+function ScrollableTable(props: React.ComponentProps<'table'>) {
+  return (
+    <div className="overflow-x-auto">
+      <table {...props} />
+    </div>
+  );
+}
+
+const COMPONENTS = { YouTube, table: ScrollableTable };
 
 // Same voice as the design posts - muted body, underlined links - extended to the
 // Markdown a written piece reaches for that a design breakdown does not.
@@ -38,18 +58,32 @@ const COMPONENTS = { YouTube };
 // wider number would start at different x. The empty-string list style hides the native
 // marker without `none`, which makes Safari drop list semantics.
 // Plain-text fences hold quoted prose rather than code, so they wrap.
+// Size alone barely separates three heading levels, so each also carries its own mark: a
+// rule opens an h2 section, a bar leads an h3, and an h4 has neither. Headings sit closer
+// to the text they introduce than to the text above.
 const PROSE = `
   mdx-lists text-muted-foreground space-y-6 text-base leading-relaxed tracking-wide
-  [&>h2]:text-foreground [&>h2]:pt-4 [&>h2]:text-xl [&>h2]:font-semibold [&>h2]:tracking-normal
-  [&>h3]:text-foreground [&>h3]:pt-2 [&>h3]:text-lg [&>h3]:font-semibold [&>h3]:tracking-normal
-  [&>h4]:text-foreground [&>h4]:pt-1 [&>h4]:text-base [&>h4]:font-semibold [&>h4]:tracking-normal
-  [&_strong]:text-foreground [&_strong]:font-semibold
+  [&>:is(h2,h3,h4)]:text-foreground [&>:is(h2,h3,h4)]:font-semibold
+  [&>:is(h2,h3,h4)]:leading-snug [&>:is(h2,h3,h4)]:tracking-normal
+  [&>h2]:pt-8 [&>h2]:mb-4 [&>h2]:text-[1.375rem]
+  [&>h2:not(:first-child)]:border-border [&>h2:not(:first-child)]:mt-6
+  [&>h2:not(:first-child)]:border-t [&>h2:not(:first-child)]:pt-10
+  [&>h3]:pt-4 [&>h3]:mb-3 [&>h3]:text-[1.1875rem]
+  [&>h3]:before:bg-foreground [&>h3]:before:mr-2.5 [&>h3]:before:inline-block
+  [&>h3]:before:h-[0.9em] [&>h3]:before:w-1 [&>h3]:before:rounded-full
+  [&>h3]:before:align-[-0.1em] [&>h3]:before:content-['']
+  [&>h4]:pt-2 [&>h4]:mb-2 [&>h4]:text-[1.0625rem]
+  [&_strong]:text-foreground [&_strong]:font-medium
   [&_a]:text-foreground [&_a]:underline [&_a]:decoration-border [&_a]:underline-offset-3
   [&_a]:transition-colors [&_a:hover]:decoration-muted-foreground
-  [&>blockquote]:border-foreground [&>blockquote]:text-foreground [&>blockquote]:border-l-3
-  [&>blockquote]:bg-muted/50 [&>blockquote]:rounded-r-md [&>blockquote]:py-3
-  [&>blockquote]:pr-4 [&>blockquote]:pl-5 [&>blockquote>*+*]:mt-3
-  [&>:is(ul,ol)]:bg-muted/50 [&>:is(ul,ol)]:rounded-xl [&>:is(ul,ol)]:py-4 [&>:is(ul,ol)]:pr-5
+  [&>blockquote]:text-foreground [&>blockquote]:border-border/80 [&>blockquote]:bg-surface
+  [&>blockquote]:relative [&>blockquote]:rounded-xl [&>blockquote]:border
+  [&>blockquote]:py-4 [&>blockquote]:pr-5 [&>blockquote]:pl-12 [&>blockquote>*+*]:mt-3
+  [&>blockquote]:before:text-muted-foreground/45 [&>blockquote]:before:absolute
+  [&>blockquote]:before:top-2.5 [&>blockquote]:before:left-4 [&>blockquote]:before:font-serif
+  [&>blockquote]:before:text-[3.25rem] [&>blockquote]:before:leading-none
+  [&>blockquote]:before:content-['“']
+  [&>:is(ul,ol)]:bg-muted [&>:is(ul,ol)]:rounded-xl [&>:is(ul,ol)]:py-4 [&>:is(ul,ol)]:pr-5
   [&>:is(ul,ol)]:pl-10! [&>:is(ul,ol)]:[list-style-type:'']! [&>ol]:[counter-reset:item]
   [&>:is(ul,ol)>li]:relative [&>:is(ul,ol)>li]:before:absolute [&>:is(ul,ol)>li]:before:-left-5
   [&>ul>li]:before:-left-4 [&>ul>li]:before:top-[calc(0.8125em-2.5px)] [&>ul>li]:before:size-[5px]
@@ -57,28 +91,36 @@ const PROSE = `
   [&>ol>li]:[counter-increment:item] [&>ol>li]:before:content-[counter(item)'.']
   [&>ol>li]:before:tabular-nums
   [&>hr]:border-border [&>hr]:mx-auto [&>hr]:w-24 [&>hr]:border-dashed
-  [&_img]:border-border/80 [&_img]:rounded-xl [&_img]:border
+  [&_img]:border-border/80 [&_img]:rounded-xl [&_img]:border [&_img]:mx-auto [&_img]:block
+  [&_picture>img]:w-full
   [&_:not(pre)>code]:bg-muted [&_:not(pre)>code]:text-foreground [&_:not(pre)>code]:rounded
   [&_:not(pre)>code]:px-1.5 [&_:not(pre)>code]:py-0.5 [&_:not(pre)>code]:text-[0.875em]
+  [&>:is(ul,ol)_:not(pre)>code]:bg-background
   [&_pre]:overflow-x-auto [&_pre]:rounded-[10px] [&_pre]:bg-[#1f2328]!
   [&_pre]:shadow-[inset_0_0_0_1px_rgb(255_255_255/0.06)] [&_pre]:font-mono [&_pre]:text-[13px]
   [&_pre]:leading-[21px] [&_pre]:tracking-normal [&_pre]:px-4 [&_pre]:py-3
   [&_pre[data-language=text]]:whitespace-pre-wrap [&_pre[data-language=text]]:break-words
   [&_table]:w-full [&_table]:text-sm [&_th]:text-foreground [&_th]:font-medium
   [&_:is(th,td)]:border-b [&_:is(th,td)]:py-2 [&_:is(th,td)]:pr-4 [&_:is(th,td)]:text-left
+  [&_:is(th,td)]:min-w-28 [&_:is(th,td):first-child]:min-w-auto
+  [&_:is(th,td):first-child]:whitespace-nowrap [&_td]:align-top
+  [&_td:first-child]:text-foreground [&_td:first-child]:font-medium
+  [&_tbody>tr:last-child>td]:border-b-0
 `;
 
 export function loader({ params, request }: Route.LoaderArgs) {
-  const post = posts.get(params.slug);
-  if (!post || !isVisible(post.frontmatter)) {
+  const { section, slug } = params;
+  const post = posts.get(postKey(section, slug));
+  if (!post || !isArticleSection(section) || !isVisible(post.frontmatter)) {
     throw new Response('找不到這篇文章', { status: 404 });
   }
 
   const { series, title } = post.frontmatter;
-  const parts = series ? seriesParts(visiblePosts(), series) : [];
+  const parts = series ? seriesParts(visiblePosts(section), series) : [];
 
   return {
-    slug: params.slug,
+    section,
+    slug,
     frontmatter: post.frontmatter,
     title: series ? seriesPartTitle(series, title) : title,
     series: series ? { name: series, parts } : undefined,
@@ -86,10 +128,16 @@ export function loader({ params, request }: Route.LoaderArgs) {
   };
 }
 
-function visiblePosts(): BlogPost[] {
-  return [...posts]
-    .filter(([, mod]) => isVisible(mod.frontmatter))
-    .map(([slug, mod]) => ({ slug, frontmatter: mod.frontmatter }));
+function visiblePosts(section: ArticleSection): Article[] {
+  return Object.entries(modules)
+    .filter(
+      ([modulePath, mod]) =>
+        sectionFromModulePath(modulePath) === section && isVisible(mod.frontmatter)
+    )
+    .map(([modulePath, mod]) => ({
+      slug: slugFromModulePath(modulePath),
+      frontmatter: mod.frontmatter,
+    }));
 }
 
 export function meta({ loaderData }: Route.MetaArgs) {
@@ -117,10 +165,10 @@ export function meta({ loaderData }: Route.MetaArgs) {
   ];
 }
 
-export default function BlogPost({ loaderData }: Route.ComponentProps) {
-  const { slug, frontmatter, series } = loaderData;
+export default function ArticlePost({ loaderData }: Route.ComponentProps) {
+  const { section, slug, frontmatter, series } = loaderData;
   const { title, date, draft, kind } = frontmatter;
-  const Content = posts.get(slug)!.default;
+  const Content = posts.get(postKey(section, slug))!.default;
 
   return (
     <article className="mx-auto w-full max-w-2xl px-6 pb-24">
@@ -148,13 +196,17 @@ export default function BlogPost({ loaderData }: Route.ComponentProps) {
         {kind && <KindSeparator kind={kind} className="mt-6 mb-5 sm:mt-7 sm:mb-0" />}
       </header>
 
-      {series && <SeriesNav name={series.name} parts={series.parts} currentSlug={slug} />}
+      {series && (
+        <SeriesNav section={section} name={series.name} parts={series.parts} currentSlug={slug} />
+      )}
 
       <div className={PROSE}>
         <Content components={COMPONENTS} />
       </div>
 
-      {series && <SeriesPager name={series.name} parts={series.parts} currentSlug={slug} />}
+      {series && (
+        <SeriesPager section={section} name={series.name} parts={series.parts} currentSlug={slug} />
+      )}
     </article>
   );
 }

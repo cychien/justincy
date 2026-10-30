@@ -1,16 +1,17 @@
 import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/16/solid';
 import { Link } from 'react-router';
 
-import type { BlogPost } from '~/lib/blog';
+import type { Article, ArticleSection } from '~/lib/articles';
 import { cn } from '~/lib/utils';
 
 interface SeriesPagerProps {
   name: string;
-  parts: BlogPost[];
+  section: ArticleSection;
+  parts: Article[];
   currentSlug: string;
 }
 
-export function SeriesPager({ name, parts, currentSlug }: SeriesPagerProps) {
+export function SeriesPager({ name, section, parts, currentSlug }: SeriesPagerProps) {
   const index = parts.findIndex(({ slug }) => slug === currentSlug);
   const previous = parts[index - 1];
   const next = parts[index + 1];
@@ -18,19 +19,25 @@ export function SeriesPager({ name, parts, currentSlug }: SeriesPagerProps) {
 
   return (
     <nav aria-label={`${name} 上下篇`} className="mt-16 grid gap-3 sm:grid-cols-2">
-      {previous && <PagerLink post={previous} direction="previous" />}
-      {next && <PagerLink post={next} direction="next" />}
+      {previous && <PagerLink section={section} post={previous} direction="previous" />}
+      {next && <PagerLink section={section} post={next} direction="next" />}
     </nav>
   );
 }
 
-function PagerLink({ post, direction }: { post: BlogPost; direction: 'previous' | 'next' }) {
+interface PagerLinkProps {
+  section: ArticleSection;
+  post: Article;
+  direction: 'previous' | 'next';
+}
+
+function PagerLink({ section, post, direction }: PagerLinkProps) {
   const isNext = direction === 'next';
   const Arrow = isNext ? ArrowRightIcon : ArrowLeftIcon;
 
   return (
     <Link
-      to={`/blog/${post.slug}`}
+      to={`/${section}/${post.slug}`}
       rel={isNext ? 'next' : 'prev'}
       className={cn(
         'border-border/80 hover:bg-muted/40 focus-visible:ring-ring group flex flex-col gap-1.5 rounded-xl border px-5 py-4 transition-colors focus-visible:ring-2 focus-visible:outline-hidden',

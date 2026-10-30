@@ -1,38 +1,54 @@
 import { PostCard, PostCardGrid } from '~/components/PostCard';
-import { buildBlogIndex, isVisible, type BlogPostFrontmatter } from '~/lib/blog';
-import { slugFromModulePath } from '~/lib/content';
+import {
+  ARTICLE_SECTIONS,
+  buildArticleIndex,
+  isArticleSection,
+  isVisible,
+  type ArticleFrontmatter,
+} from '~/lib/articles';
+import { sectionFromModulePath, slugFromModulePath } from '~/lib/content';
 
-import type { Route } from './+types/blog';
+import type { Route } from './+types/articles';
 
 // Server-only for the same reason as the design index: the client bundle should not
 // carry every post's compiled body just to render a list of titles.
-export function loader() {
-  const frontmatters = import.meta.glob('../content/blog/*.mdx', {
+// The glob is a literal, so it has to name every key of ARTICLE_SECTIONS.
+export function loader({ params }: Route.LoaderArgs) {
+  const { section } = params;
+  if (!isArticleSection(section)) {
+    throw new Response('找不到這個頁面', { status: 404 });
+  }
+
+  const frontmatters = import.meta.glob('../content/{software,blog}/*.mdx', {
     eager: true,
     import: 'frontmatter',
-  }) as Record<string, BlogPostFrontmatter>;
+  }) as Record<string, ArticleFrontmatter>;
 
   const posts = Object.entries(frontmatters)
-    .filter(([, frontmatter]) => isVisible(frontmatter))
+    .filter(
+      ([modulePath, frontmatter]) =>
+        sectionFromModulePath(modulePath) === section && isVisible(frontmatter)
+    )
     .map(([modulePath, frontmatter]) => ({ slug: slugFromModulePath(modulePath), frontmatter }));
 
-  return { entries: buildBlogIndex(posts) };
+  return { section, entries: buildArticleIndex(posts) };
 }
 
-export function meta() {
-  return [{ title: 'Blog - justincy' }, { name: 'description', content: '人生感悟及日常分享。' }];
+export function meta({ loaderData }: Route.MetaArgs) {
+  if (!loaderData) return [{ title: 'justincy' }];
+  const { title, description } = ARTICLE_SECTIONS[loaderData.section];
+  return [{ title: `${title} - justincy` }, { name: 'description', content: `${description}。` }];
 }
 
-export default function Blog({ loaderData }: Route.ComponentProps) {
-  const { entries } = loaderData;
+export default function Articles({ loaderData }: Route.ComponentProps) {
+  const { section, entries } = loaderData;
+  const { title, description } = ARTICLE_SECTIONS[section];
 
   return (
     <section className="mx-auto w-full max-w-5xl px-6 pb-24">
       <header className="mx-auto max-w-md space-y-2 pt-10 pb-12 text-center">
-        <h1 className="text-foreground text-2xl font-semibold tracking-normal">Blog</h1>
-        <p className="text-[15px] leading-relaxed tracking-wide text-zinc-500">
-          人生感悟及日常分享
-        </p>
+        <h1 className="text-foreground text-2xl font-semibold tracking-normal">{title}</h1>
+        <p className="text-[15px] leading-relaxed tracking-wide text-zinc-500">{description}</p>
       </header>
 
       {entries.length === 0 ? (
@@ -45,7 +61,7 @@ export default function Blog({ loaderData }: Route.ComponentProps) {
               return (
                 <PostCard
                   key={slug}
-                  to={`/blog/${slug}`}
+                  to={`/${section}/${slug}`}
                   title={frontmatter.title}
                   date={frontmatter.date}
                   thumb={cardThumb(frontmatter)}
@@ -60,7 +76,7 @@ export default function Blog({ loaderData }: Route.ComponentProps) {
             return (
               <PostCard
                 key={entry.name}
-                to={`/blog/${first.slug}`}
+                to={`/${section}/${first.slug}`}
                 title={entry.name}
                 date={entry.parts.at(-1)!.frontmatter.date}
                 thumb={cardThumb(first.frontmatter)}
@@ -75,6 +91,6 @@ export default function Blog({ loaderData }: Route.ComponentProps) {
   );
 }
 
-function cardThumb({ thumb, thumbAlt, thumbColor }: BlogPostFrontmatter) {
+function cardThumb({ thumb, thumbAlt, thumbColor }: ArticleFrontmatter) {
   return thumb ? { src: thumb, alt: thumbAlt ?? '', color: thumbColor } : undefined;
 }

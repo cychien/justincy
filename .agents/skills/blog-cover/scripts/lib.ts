@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
 import sharp from 'sharp';
@@ -14,18 +14,35 @@ export function workDir(slug: string): string {
   return ensureDir(path.join(PROJECT_ROOT, 'tmp/blog-cover', slug));
 }
 
+const CONTENT_DIR = path.join(PROJECT_ROOT, 'app/content');
+
+/** The content folder holding the post, e.g. blog or software; its images go under the same name. */
+export function sectionOf(slug: string): string {
+  const sections = readdirSync(CONTENT_DIR).filter((section) =>
+    existsSync(path.join(CONTENT_DIR, section, `${slug}.mdx`))
+  );
+  if (sections.length === 0) {
+    fail(`No post at app/content/<section>/${slug}.mdx. The slug is the filename without .mdx.`);
+  }
+  if (sections.length > 1) fail(`${slug}.mdx is in more than one section: ${sections.join(', ')}.`);
+  return sections[0];
+}
+
+/** Where the post's images are served from, as written in its frontmatter. */
+export function publicUrl(slug: string): string {
+  return `/images/${sectionOf(slug)}/${slug}`;
+}
+
 export function publicDir(slug: string): string {
-  return ensureDir(path.join(PROJECT_ROOT, 'public/images/blog', slug));
+  return ensureDir(path.join(PROJECT_ROOT, 'public', publicUrl(slug)));
 }
 
 export function postPath(slug: string): string {
-  return path.join(PROJECT_ROOT, 'app/content/blog', `${slug}.mdx`);
+  return path.join(CONTENT_DIR, sectionOf(slug), `${slug}.mdx`);
 }
 
 export function requirePost(slug: string): void {
-  if (!existsSync(postPath(slug))) {
-    fail(`No post at app/content/blog/${slug}.mdx. The slug is the filename without .mdx.`);
-  }
+  sectionOf(slug);
 }
 
 export interface Frontmatter {

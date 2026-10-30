@@ -6,7 +6,7 @@
 
 ```bash
 pnpm install
-pnpm dev        # http://localhost:5173
+pnpm dev        # http://localhost:4300
 pnpm typecheck
 pnpm build
 ```
@@ -15,10 +15,13 @@ pnpm build
 
 每篇文章是一個 `.mdx` 檔，檔名就是網址的 slug。
 
-| 區塊   | 資料夾                | 網址             |
-| ------ | --------------------- | ---------------- |
-| Blog   | `app/content/blog/`   | `/blog/<檔名>`   |
-| Design | `app/content/design/` | `/design/<檔名>` |
+| 區塊       | 資料夾                  | 網址               |
+| ---------- | ----------------------- | ------------------ |
+| 軟體白話文 | `app/content/software/` | `/software/<檔名>` |
+| Blog       | `app/content/blog/`     | `/blog/<檔名>`     |
+| Design     | `app/content/design/`   | `/design/<檔名>`   |
+
+軟體白話文和 Blog 是同一種文章：frontmatter、系列、草稿、封面、插圖的用法完全一樣，以下用 Blog 舉例，路徑裡的 `blog` 換成 `software` 即可。新增這類區塊要同時改 `app/lib/articles.ts` 的 `ARTICLE_SECTIONS` 和兩個 `app/routes/articles*.tsx` 裡的 glob。
 
 ### Blog frontmatter
 
@@ -67,7 +70,7 @@ pnpm image <文章檔名> <圖片路徑> [圖片名稱]
 # 例：pnpm image lauren-tan-ai-workflow-1 ~/Desktop/shot@2x.png trust-vs-agents
 ```
 
-會轉成 WebP 存到 `public/images/blog/<文章檔名>/`，並印出可以直接貼進文章的 Markdown：
+會轉成 WebP 存到 `public/images/<區塊>/<文章檔名>/`，並印出可以直接貼進文章的 Markdown：
 
 ```mdx
 ![圖片說明](/images/blog/lauren-tan-ai-workflow-1/trust-vs-agents@2x.webp)

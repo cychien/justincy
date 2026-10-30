@@ -1,0 +1,258 @@
+---
+title: Server-Sent Events (SSE)
+date: 2026-10-30
+thumb: /images/software/server-sent-events/cover.webp
+thumbAlt: 淺灰紙上，左邊一個深灰大圓、右邊一個深灰小方塊，中間一條細線串著一列藍色小圓點
+ogImage: /images/software/server-sent-events/og.jpg
+kind: 技術百寶箱
+---
+
+AI 的回覆一個字一個字冒出來、後台的進度條自己往前跑，背後常常是同一個技術：SSE。它沒有發明新協定，用的就是一般的 HTTP，差別只在 Server 回完話之後，不掛斷。
+
+## SSE 是什麼
+
+SSE 讓 Server 能持續把資料推給 Client。
+
+流程跟一般 HTTP 一樣：Client 發出 request，Server 回 response。差別在 Server 回完之後不關閉連線，而是讓它一直開著。之後 Server 一有新資料，就沿著這條連線繼續送給 Client。
+
+![左邊是一般 HTTP：Client 送出 request，Server 回 response 後關閉連線。右邊是 SSE：Server 回 response 後連線保持開著，之後每有新資料就沿著同一條連線推給 Client。](/images/software/server-sent-events/http-vs-sse.svg)
+
+常見的用途有即時通知、股價更新、AI 串流回覆。
+
+## 格式規範
+
+SSE 標準規定了兩件事：response 的 `Content-Type`，和資料的格式。瀏覽器內建的 SSE client 叫 `EventSource`，它會照這套標準檢查和解析。不用 `EventSource`、自己寫 parser 的話，可以不照標準走，但還是建議遵守。
+
+### Content-Type
+
+Server 回傳的 `Content-Type` header 必須是 `text/event-stream`。`EventSource` 收到其他 content type，會當成連線錯誤。
+
+### 資料格式
+
+資料是一行一行的文字。一個或多個欄位組成一個事件，事件之間用空白行隔開：
+
+```text
+: 註解
+
+event: userconnect
+data: {"username": "bobby"}
+
+data: 第一行
+data: 第二行
+
+id: 42
+event: usermessage
+data: {"text": "Hi everyone."}
+```
+
+| 欄位 | 意思 |
+| --- | --- |
+| `data:` | 事件的內容，會成為 `EventSource` 收到的 `event.data`。同一個事件有多行 `data:` 時，會用換行接起來 |
+| `event:` | 事件名稱 |
+| `id:` | 事件編號。瀏覽器會記住它，重新連線時放進 `Last-Event-ID` header 送給 Server |
+| `retry:` | 斷線後等幾毫秒再重連 |
+| `:` 開頭 | 註解，會被忽略。定時送一行，可以當心跳維持連線 |
+| 空白行 | 一個事件結束。瀏覽器讀到空白行，才會觸發這個事件 |
+
+## 斷線與重連
+
+用 `EventSource` 的話，斷線偵測和重連都內建好了：
+
+- 網路中斷時，瀏覽器會等一段時間再重連。等多久由瀏覽器預設，Server 可以用 `retry` 覆寫。
+- Server 送過 `id` 的話，重連的 request 會自動帶上 `Last-Event-ID` header。Server 可以根據它，決定從哪個事件開始補送。
+
+例外是連線時 Server 回的狀態碼不是 200，或 `Content-Type` 不是 `text/event-stream`。這時 `EventSource` 會直接放棄：`readyState` 變成 `CLOSED`，不再重連。想重試的話，要在 `onerror` 裡判斷，自己重新建立一個 `EventSource`。
+
+## `EventSource` 的限制
+
+`EventSource` 是瀏覽器 API，Web Worker 裡也能用。Deno 和 Node.js 也有內建實作。大多數情況，它都是很好的預設選擇。
+
+遇到下面這些限制時，就要考慮自己寫 parser：
+
+- **只能發 `GET`**：不能帶 request body，要用 `POST` 就不行。
+- **不能自訂 header**：例如 API 用 `Authorization: Bearer ...` 驗證，就沒辦法用。cookie 倒是會照常送出。
+- **只能傳 UTF-8 文字**：SSE 串流固定用 UTF-8 解碼，不適合直接傳圖片這類二進位資料。
+
+替代做法是用 `fetch` 讀串流，自己實作解析和重連。
+
+## 範例
+
+Server 端用 Node.js，每秒送出一個事件：
+
+```js
+import http from 'node:http'
+
+http.createServer((req, res) => {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream; charset=utf-8',
+    'Cache-Control': 'no-cache',
+  })
+  let n = 0
+  const timer = setInterval(() => {
+    n++
+    res.write(`id: ${n}\ndata: tick ${n}\n\n`)
+  }, 1000)
+  req.on('close', () => clearInterval(timer))
+}).listen(8080)
+```
+
+在終端機用 curl 就能連上，`-N` 讓事件一到就印出來：
+
+```bash
+curl -N http://localhost:8080/
+```
+
+瀏覽器端這樣寫。沒有 `event:` 名稱的事件會進 `onmessage`，有名稱的要用 `addEventListener` 監聽：
+
+```js
+// 對 /events 發出 request，並把串流包成 EventSource 物件
+const source = new EventSource('/events')
+
+source.onmessage = (event) => {
+  console.log(event.data, event.lastEventId)
+}
+
+source.addEventListener('usermessage', (event) => {
+  const message = JSON.parse(event.data)
+})
+
+source.onerror = () => {
+  // CONNECTING (0)：正在連線或重連
+  // OPEN (1)：已連線
+  // CLOSED (2)：不會再重連
+  console.log(source.readyState)
+}
+
+// 由 Client 主動關閉連線
+source.close()
+```
+
+## Polling、long polling、SSE、WebSocket 怎麼選
+
+要讓 Client 收到 Server 的新資料，常見有四種做法，適合的場景各不相同：
+
+![同一段時間內 Server 有兩筆新資料。Polling 每隔一段時間問一次，新資料要等下一次問才送到；long polling 的 request 停在 Server 等資料，有資料才回；SSE 只連一次，資料一出現就推送；WebSocket 也只連一次，雙方都能隨時傳送。](/images/software/server-sent-events/four-ways.svg)
+
+|  | Polling | Long polling | SSE | WebSocket |
+| --- | --- | --- | --- | --- |
+| 怎麼運作 | Client 每隔幾秒問一次有沒有新資料 | Client 問了之後，Server 等到有資料才回答 | Client 連一次，Server 沿著這條連線持續推送 | 連線建立後，雙方都能隨時傳送 |
+| 方向 | Client 問 Server | Client 問 Server | 第一次由 Client 連線，之後由 Server 主動推送 | 雙向 |
+| 延遲 | 要等下一次問才知道 | 比 polling 低，但每次回答完都要重新問 | 接近即時 | 接近即時 |
+| 優點 | 簡單、無狀態，Server 容易橫向擴展。沒有特殊規範，大部分 infra 都能直接配合 | 一樣走 HTTP，infra 能直接配合。有資料才回答，沒有多餘的傳輸 | 傳輸成本低，Client 總共只送 1 次 request | 傳輸成本低 |
+| 缺點 | request 量大，雖然每個都很短。沒有新資料也一直問，浪費傳輸 | Server 要為還沒回答的 request 保留資源 | 連線有狀態，事件得送到持有連線的那台 Server。Server 要為開著的連線保留資源 | 和 SSE 一樣有狀態問題。重連、退避、續傳都要自己寫 |
+| 實作注意 | 所有 Client 同時問會形成尖峰，要加 jitter | 和 polling 一樣要處理尖峰。要調高 infra 的連線 timeout | 斷線重連時要處理尖峰。HTTP/1.1 下瀏覽器每個網域約只能開 6 條連線，HTTP/2 沒有這個問題。要調高 infra 的連線 timeout | 各瀏覽器有自己的連線數上限。要確認 proxy、防火牆、負載平衡器都支援 |
+| 適合 | 更新不頻繁、可以接受延遲 | 需要接近即時的體驗 | 通知、進度、儀表板、AI 串流輸出 | 聊天、協作編輯、遊戲、Client 需要頻繁上傳的場景 |
+
+需要雙向溝通、但 Client 很少送資料時，也可以用 SSE 收資料、一般的 HTTP request 送資料。
+
+### SSE 幾乎能取代 long polling
+
+理論上，SSE 是 long polling 的上位替代。只有兩種情況才值得考慮 long polling：
+
+- **環境不支援串流回應**：有些老舊的 proxy、防火牆或平台會把整個 response 緩衝起來，等結束才交給 Client。SSE 在這種環境完全失效。
+- **事件非常少**：一個 request 可能要等好幾分鐘才有一個事件。這時 long polling 多出來的成本不明顯，邏輯也比較簡單，還不用處理長連線的維運問題。
+
+## Scalability、Availability、Reliability
+
+### Scalability
+
+#### 多台 Server
+
+每條 SSE 連線只連到一台 Server。Server 一多，就會遇到這個問題：
+
+> 資料變了，要怎麼找到持有那條連線的 Server，讓它把事件送給正確的 Client？
+
+![四個步驟：單台 Server 直接寫給所有連線；兩台時，連在 Server B 的用戶 2 收不到只到 Server A 的事件；加上 Broker 後，事件廣播給每台 Server；Server 很多時先查連線位置表，只把事件發給持有連線的 Server B、C。](/images/software/server-sent-events/scaling.svg)
+
+常見的解法是透過 Broker 廣播，例如 Redis Pub/Sub：
+
+1. Client 連到 Server B。B 在記憶體記下「user-123 → 這條連線」。
+2. 資料變更後，發布一個事件到 Broker：`{ userId: "user-123", ... }`。
+3. Server A、B、C 都收到這個事件，各自檢查自己有沒有 user-123 的連線。
+4. B 找到連線，把事件送給 Client。其他 Server 忽略。
+
+這樣發布事件的程式不需要知道 Client 連在哪台 Server。同一個使用者開了多個分頁、分別連到不同 Server，每個分頁也都收得到。
+
+Server 很多時，每個事件都廣播給所有 Server 太浪費。這時可以在共享儲存裡維護一張連線位置表：
+
+```text
+user-123 → [server-B, server-C]
+```
+
+事件發生時先查這張表，再把事件只發到 B、C 各自的 channel。代價是要多維護這張表。
+
+不管用廣播還是查表，都需要一個 Broker。實作這一層時，有兩件事要知道：
+
+- **Broker 的選擇**：Redis、NATS、Kafka、雲端的 pub/sub 服務，或 Postgres 的 `LISTEN/NOTIFY` 都可以。
+- **每個 process 只開一條 Broker 連線**：在 Server 裡用一張 routing table，把收到的事件分給對應的連線。不要為每個使用者的 channel 各開一條，Broker 的連線數很快就會爆。
+
+除了加 Server，下面三個做法能減少每台 Server 要承擔的量。
+
+#### Backpressure
+
+某個 Client 處理得慢、事件又多時，還沒送出的事件會堆在 Server 的記憶體裡。等 buffer 滿了，之後的事件就會遺失。
+
+解法是給每條連線的佇列設上限，不讓一個慢 Client 吃光 Server 的記憶體。超過上限時，可以先暫停送，或直接關閉連線，等 Client 自動重連後再補送。
+
+#### 多分頁
+
+同一個使用者開 5 個分頁，就是 5 條 SSE 連線。可以讓分頁共用一條連線，例如用 `BroadcastChannel` 選出一個分頁當 leader；或改用 HTTP/2，避開瀏覽器的連線數上限。
+
+#### 一條連線傳多個主題
+
+用 `event:` 名稱區分主題，不要每個主題各開一個 `EventSource`。
+
+### Availability
+
+只要事件有存下來 (見下方「歷史資料回溯」)，SSE 的 availability 不太需要擔心。原本的 Server 掛了，Client 直接連到別台；新的 Server 根據 `Last-Event-ID`，一樣能補送完整的資料。
+
+![Server A 送出 id 41 之後掛了。Client 帶著 Last-Event-ID: 41 重連到 Server B，Server B 從事件紀錄讀出 42、43，再依序補送給 Client。](/images/software/server-sent-events/failover.svg)
+
+真正要小心的是重連風暴。
+
+#### 重連風暴
+
+假設一台 Server 撐著 10,000 條連線，然後它重啟了。這 10,000 個 Client 幾乎同時斷線，又會在同一個預設等待時間之後同時重連。新起來的 Server、負載平衡器、後端資料庫，都得在同一秒吃下 10,000 個 request，常常因此再度倒下。
+
+![左圖是固定的 retry：所有 Client 都在第 3 秒同時重連，形成一根尖峰。右圖是隨機的 retry：重連平均分散在 3 到 7 秒之間。](/images/software/server-sent-events/reconnect-storm.svg)
+
+**SSE 有個好用的特性：重連要等多久，是 Server 用 `retry` 告訴瀏覽器的。** 所以每條連線建立時送一個隨機的 `retry`，就等於免費得到 jitter，完全不用改 Client：
+
+```js
+const retry = 3000 + Math.floor(Math.random() * 4000) // 3 到 7 秒之間
+res.write(`retry: ${retry}\n\n`)
+```
+
+不管用哪個平台，都要把「連線會被平台切斷」當成常態，確保重連和補送都能正確運作。
+
+### Reliability
+
+#### 歷史資料回溯
+
+Client 和 Server 之間難免斷線，斷線期間送出的事件就丟了。所以要把訊息存下來，Client 重連後才能補送。
+
+一般做法是先存進資料庫，成功後再交給 Broker 廣播：
+
+1. Server 把訊息存進資料庫。
+2. Server 把事件發布到 Broker。
+3. Broker 把事件送給各台 Server。
+4. 持有連線的 Server 把事件推給 Client。
+
+Client 重連時，`EventSource` 會自動帶上 `Last-Event-ID`，Server 據此補送之後的事件。
+
+但如果訊息存進資料庫之後，Server 在發布到 Broker 之前就掛了，這個事件就不會即時送到 Client。需要更可靠時，可以用 **Transactional Outbox pattern**：
+
+1. 在同一個資料庫 transaction 裡，同時寫入訊息和一筆「待發布事件」。
+2. 背景程式讀取待發布事件，發布到 Broker。
+3. 發布成功後，把這筆事件標記為已發布。
+4. 各台 Server 收到事件，推給自己持有連線的 Client。
+
+![上半部是一般做法：Server 先把訊息存進資料庫，再發布事件到 Broker；如果在這兩步之間掛掉，事件就不會送出。下半部是 Transactional Outbox：訊息和待發布事件寫在同一個 transaction，由背景程式讀取、發布到 Broker，再標記為已發布。](/images/software/server-sent-events/outbox.svg)
+
+## 檢查清單 (給 AI agent 用)
+
+SSE 的格式幾行就能寫完，真正花功夫的是上線之後：連線分散在多台 Server、重啟時的重連風暴、斷線期間漏掉的事件。用 SSE 時，逐項確認：
+
+- 盡量遵守 SSE 規範，不管有沒有自訂 parser。
+- 環境有 `EventSource`、也沒撞到它的限制，就預設用它。否則要自己補上 `EventSource` 內建的功能：事件解析、錯誤處理、斷線重連、`retry`、`Last-Event-ID`。
+- 對照上面 Scalability、Availability、Reliability 的注意事項逐一檢查。
