@@ -8,6 +8,7 @@ import { cn } from '~/lib/utils';
 
 const NAV_ITEMS = [
   { label: '關於我', to: '/' },
+  { label: '我的產品', to: '/products' },
   { label: ARTICLE_SECTIONS.software.title, to: '/software' },
 ];
 
