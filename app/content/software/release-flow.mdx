@@ -589,13 +589,6 @@ gh release edit desktop-v0.1.2 --draft=true   # 壞的那版改回 draft
 
 `electron-updater` 讀的是 Latest release 的 `latest-mac.yml`，改回去之後，就不會再有人被更新到壞版。
 
-## 容易做錯的地方
+## 總結
 
-- **trusted publisher 預設不能直接 publish。** 預設只允許 `npm stage publish`，要在 Allowed actions 勾 `npm publish`，CI 才能直接 Release。
-- **trusted publisher 設定 2 天內沒用過就會失效。** 設好之後要盡快成功 publish 一次。
-- **對已經存在的版本跑 `npm publish --dry-run` 會報錯。** 所以 dry run 時，stable job 要照 pending 的判斷跑，不能一律跑。
-- **Release job 要放在同一個 workflow。** 用 `GITHUB_TOKEN` 建立的 tag 和 release 不會觸發其他 workflow。
-- **用 registry 判斷要不要發，不要用 release-please 的 `release_created`。** 它只在建立 release 的那次執行是 true，那次失敗就永遠補不回來。
-- **第一版 `release.yml` 不要帶 `on: push`。** 新增它的 PR merge 進 main 本身就是一次 push，會立刻 Release。
-- **canary 的版本號一定要帶 `-`。** 沒有 `-` 就會被當成 stable，一般的版本範圍會選到它。
-- **CI 不碰 `npm dist-tag`。** 回退由人在本機用 2FA 執行，latest 只在 merge Release PR 時移動。
+這篇從 Release 的四步、canary 和 stable 講起，走過 npm package 和 macOS app 的手動與 CI 自動 Release，最後是怎麼驗證、遷移，以及發錯時怎麼回退。照著這些步驟，就能把手動 Release 換成 merge 進 main 就自動完成的流程。
