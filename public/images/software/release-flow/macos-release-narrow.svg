@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="336" height="508" viewBox="0 0 336 508" role="img" aria-label="desktop job 依序 build、簽章、公證、上傳到 draft release、檢查檔案齊全，這五步使用者都看不到。最後改成正式 release 並標成 Latest，網站下載連結和 electron-updater 才讀得到新版">
+<title>desktop job 依序 build、簽章、公證、上傳到 draft release、檢查檔案齊全，這五步使用者都看不到。最後改成正式 release 並標成 Latest，網站下載連結和 electron-updater 才讀得到新版</title>
+
+<style>
+  .bg { fill: #fafafa; }
+  .card { fill: #ffffff; stroke: #e4e4e7; }
+  .box { fill: #ffffff; stroke: #a1a1aa; stroke-width: 1.25; }
+  .box-dim { fill: #fafafa; stroke: #d4d4d8; stroke-width: 1.25; stroke-dasharray: 4 3; }
+  .box-accent { fill: #eff6ff; stroke: #2563eb; stroke-width: 1.25; }
+  .group { fill: none; stroke: #a1a1aa; stroke-width: 1.25; stroke-dasharray: 4 3; }
+  .group-accent { fill: #2563eb; fill-opacity: 0.05; stroke: #2563eb; stroke-width: 1.25; stroke-dasharray: 4 3; }
+  .t { fill: #18181b; font: 500 13px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t-strong { fill: #18181b; font: 600 14px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t2 { fill: #52525b; font: 400 12.5px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t3 { fill: #a1a1aa; font: 400 11.5px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t-acc { fill: #2563eb; font: 600 12.5px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t-dim { fill: #a1a1aa; font: 500 13px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .code { fill: #52525b; font: 400 11.5px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .code-acc { fill: #2563eb; font: 600 11.5px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .life { stroke: #d4d4d8; stroke-width: 1.25; stroke-dasharray: 3 3; }
+  .axis { stroke: #d4d4d8; stroke-width: 1; }
+  .line { stroke: #71717a; stroke-width: 1.5; fill: none; }
+  .line-dim { stroke: #d4d4d8; stroke-width: 1.5; fill: none; }
+  .ev { stroke: #2563eb; stroke-width: 1.75; fill: none; }
+  .line-dash { stroke: #a1a1aa; stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+  .dot { fill: #2563eb; }
+  .dot-line { fill: #71717a; }
+  .dot-hollow { fill: #ffffff; stroke: #d4d4d8; stroke-width: 1.5; }
+  .head-line { fill: #71717a; }
+  .head-ev { fill: #2563eb; }
+  .head-dim { fill: #d4d4d8; }
+  .mask { fill: #ffffff; }
+  @media (prefers-color-scheme: dark) {
+    .bg { fill: #18181b; }
+    .card { fill: #09090b; stroke: #27272a; }
+    .box { fill: #18181b; stroke: #52525b; }
+    .box-dim { fill: #18181b; stroke: #3f3f46; }
+    .box-accent { fill: #172554; stroke: #3b82f6; }
+    .group { stroke: #52525b; }
+    .group-accent { fill: #3b82f6; fill-opacity: 0.08; stroke: #3b82f6; }
+    .t, .t-strong { fill: #fafafa; }
+    .t2, .code { fill: #a1a1aa; }
+    .t3, .t-dim { fill: #71717a; }
+    .t-acc, .code-acc { fill: #60a5fa; }
+    .life, .axis { stroke: #3f3f46; }
+    .line { stroke: #a1a1aa; }
+    .line-dim { stroke: #52525b; }
+    .ev { stroke: #3b82f6; }
+    .line-dash { stroke: #71717a; }
+    .dot { fill: #3b82f6; }
+    .dot-line { fill: #a1a1aa; }
+    .dot-hollow { fill: #09090b; stroke: #52525b; }
+    .head-line { fill: #a1a1aa; }
+    .head-ev { fill: #3b82f6; }
+    .head-dim { fill: #52525b; }
+    .mask { fill: #09090b; }
+  }
+</style>
+<defs>
+  <marker id="a-line" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-line" d="M0 0 L10 5 L0 10 z"/></marker>
+  <marker id="a-ev" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-ev" d="M0 0 L10 5 L0 10 z"/></marker>
+  <marker id="a-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-dim" d="M0 0 L10 5 L0 10 z"/></marker>
+</defs>
+
+<rect class="bg" width="336" height="508"/>
+<rect class="card" x="16" y="16" width="304" height="476" rx="10"/>
+<text class="t-strong" x="32" y="44" text-anchor="start">desktop job</text>
+<rect class="group" x="28" y="56" width="280" height="268" rx="10"/>
+<rect class="box" x="40" y="68" width="150" height="36" rx="7"/>
+<text class="t" x="115.0" y="90.5" text-anchor="middle">Build</text>
+<text class="t3" x="202" y="90.5" text-anchor="start">dmg、zip、yml</text>
+<rect class="box" x="40" y="120" width="150" height="36" rx="7"/>
+<text class="t" x="115.0" y="142.5" text-anchor="middle">簽章</text>
+<text class="t3" x="202" y="142.5" text-anchor="start">Developer ID</text>
+<line class="line" x1="115" y1="104" x2="115" y2="118" marker-end="url(#a-line)"/>
+<rect class="box" x="40" y="172" width="150" height="36" rx="7"/>
+<text class="t" x="115.0" y="194.5" text-anchor="middle">公證</text>
+<text class="t3" x="202" y="194.5" text-anchor="start">送 Apple 掃描</text>
+<line class="line" x1="115" y1="156" x2="115" y2="170" marker-end="url(#a-line)"/>
+<rect class="box" x="40" y="224" width="150" height="36" rx="7"/>
+<text class="t" x="115.0" y="246.5" text-anchor="middle">上傳到 draft</text>
+<text class="t3" x="202" y="246.5" text-anchor="start">對外看不到</text>
+<line class="line" x1="115" y1="208" x2="115" y2="222" marker-end="url(#a-line)"/>
+<rect class="box" x="40" y="276" width="150" height="36" rx="7"/>
+<text class="t" x="115.0" y="298.5" text-anchor="middle">檢查檔案齊全</text>
+<text class="t3" x="202" y="298.5" text-anchor="start">三種檔案都在</text>
+<line class="line" x1="115" y1="260" x2="115" y2="274" marker-end="url(#a-line)"/>
+<rect class="box-accent" x="40" y="352" width="150" height="36" rx="7"/>
+<text class="t-acc" x="115.0" y="374.5" text-anchor="middle">改成正式 release</text>
+<text class="t-acc" x="202" y="374.5" text-anchor="start">標成 Latest</text>
+<line class="ev" x1="115" y1="312" x2="115" y2="346" marker-end="url(#a-ev)"/>
+<text class="t3" x="130" y="340" text-anchor="start">前五步使用者都看不到</text>
+<line class="ev" x1="115" y1="384" x2="115" y2="412" marker-end="url(#a-ev)"/>
+<rect class="box" x="40" y="414" width="150" height="48" rx="7"/>
+<text class="t2" x="115.0" y="434.5" text-anchor="middle">網站下載連結</text>
+<text class="t2" x="115.0" y="450.5" text-anchor="middle">electron-updater</text>
+</svg>

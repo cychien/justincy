@@ -55,6 +55,9 @@
         line-height: 1.25;
         letter-spacing: -0.01em;
         text-wrap: balance;
+        /* Break CJK titles at spaces, not mid-word; a run too long for one line still wraps. */
+        word-break: keep-all;
+        overflow-wrap: anywhere;
         margin-top: 32px;
         margin-bottom: 32px;
       }

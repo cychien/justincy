@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="672" height="264" viewBox="0 0 672 264" role="img" aria-label="main 上有五次 merge。每次 merge 都發一版 canary 到 next；latest 一直停在 0.11.0，直到 merge Release PR 才發出 stable 0.12.0">
+<title>main 上有五次 merge。每次 merge 都發一版 canary 到 next；latest 一直停在 0.11.0，直到 merge Release PR 才發出 stable 0.12.0</title>
+
+<style>
+  .bg { fill: #fafafa; }
+  .card { fill: #ffffff; stroke: #e4e4e7; }
+  .box { fill: #ffffff; stroke: #a1a1aa; stroke-width: 1.25; }
+  .box-dim { fill: #fafafa; stroke: #d4d4d8; stroke-width: 1.25; stroke-dasharray: 4 3; }
+  .box-accent { fill: #eff6ff; stroke: #2563eb; stroke-width: 1.25; }
+  .group { fill: none; stroke: #a1a1aa; stroke-width: 1.25; stroke-dasharray: 4 3; }
+  .group-accent { fill: #2563eb; fill-opacity: 0.05; stroke: #2563eb; stroke-width: 1.25; stroke-dasharray: 4 3; }
+  .t { fill: #18181b; font: 500 13px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t-strong { fill: #18181b; font: 600 14px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t2 { fill: #52525b; font: 400 12.5px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t3 { fill: #a1a1aa; font: 400 11.5px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t-acc { fill: #2563eb; font: 600 12.5px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t-dim { fill: #a1a1aa; font: 500 13px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .code { fill: #52525b; font: 400 11.5px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .code-acc { fill: #2563eb; font: 600 11.5px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .life { stroke: #d4d4d8; stroke-width: 1.25; stroke-dasharray: 3 3; }
+  .axis { stroke: #d4d4d8; stroke-width: 1; }
+  .line { stroke: #71717a; stroke-width: 1.5; fill: none; }
+  .line-dim { stroke: #d4d4d8; stroke-width: 1.5; fill: none; }
+  .ev { stroke: #2563eb; stroke-width: 1.75; fill: none; }
+  .line-dash { stroke: #a1a1aa; stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+  .dot { fill: #2563eb; }
+  .dot-line { fill: #71717a; }
+  .dot-hollow { fill: #ffffff; stroke: #d4d4d8; stroke-width: 1.5; }
+  .head-line { fill: #71717a; }
+  .head-ev { fill: #2563eb; }
+  .head-dim { fill: #d4d4d8; }
+  .mask { fill: #ffffff; }
+  @media (prefers-color-scheme: dark) {
+    .bg { fill: #18181b; }
+    .card { fill: #09090b; stroke: #27272a; }
+    .box { fill: #18181b; stroke: #52525b; }
+    .box-dim { fill: #18181b; stroke: #3f3f46; }
+    .box-accent { fill: #172554; stroke: #3b82f6; }
+    .group { stroke: #52525b; }
+    .group-accent { fill: #3b82f6; fill-opacity: 0.08; stroke: #3b82f6; }
+    .t, .t-strong { fill: #fafafa; }
+    .t2, .code { fill: #a1a1aa; }
+    .t3, .t-dim { fill: #71717a; }
+    .t-acc, .code-acc { fill: #60a5fa; }
+    .life, .axis { stroke: #3f3f46; }
+    .line { stroke: #a1a1aa; }
+    .line-dim { stroke: #52525b; }
+    .ev { stroke: #3b82f6; }
+    .line-dash { stroke: #71717a; }
+    .dot { fill: #3b82f6; }
+    .dot-line { fill: #a1a1aa; }
+    .dot-hollow { fill: #09090b; stroke: #52525b; }
+    .head-line { fill: #a1a1aa; }
+    .head-ev { fill: #3b82f6; }
+    .head-dim { fill: #52525b; }
+    .mask { fill: #09090b; }
+  }
+</style>
+<defs>
+  <marker id="a-line" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-line" d="M0 0 L10 5 L0 10 z"/></marker>
+  <marker id="a-ev" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-ev" d="M0 0 L10 5 L0 10 z"/></marker>
+  <marker id="a-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-dim" d="M0 0 L10 5 L0 10 z"/></marker>
+</defs>
+
+<rect class="bg" width="672" height="264"/>
+<rect class="card" x="16" y="16" width="640" height="232" rx="10"/>
+<text class="t-strong" x="36" y="44" text-anchor="start">canary 和 stable</text>
+<line class="life" x1="196" y1="94" x2="196" y2="212"/>
+<line class="life" x1="284" y1="94" x2="284" y2="212"/>
+<line class="life" x1="372" y1="94" x2="372" y2="212"/>
+<line class="life" x1="460" y1="94" x2="460" y2="212"/>
+<line class="life" x1="572" y1="94" x2="572" y2="212"/>
+<text class="t" x="36" y="92.5" text-anchor="start">merge 進 main</text>
+<line class="line" x1="160" y1="88" x2="636" y2="88" marker-end="url(#a-line)"/>
+<text class="code" x="196" y="72" text-anchor="middle">feat</text>
+<circle class="dot-line" cx="196" cy="88" r="5"/>
+<text class="code" x="284" y="72" text-anchor="middle">fix</text>
+<circle class="dot-line" cx="284" cy="88" r="5"/>
+<text class="code" x="372" y="72" text-anchor="middle">feat</text>
+<circle class="dot-line" cx="372" cy="88" r="5"/>
+<text class="code" x="460" y="72" text-anchor="middle">fix</text>
+<circle class="dot-line" cx="460" cy="88" r="5"/>
+<text class="code-acc" x="572" y="72" text-anchor="middle">Release PR</text>
+<circle class="dot" cx="572" cy="88" r="5"/>
+<text class="t" x="36" y="140" text-anchor="start">next</text>
+<text class="t3" x="36" y="156" text-anchor="start">canary</text>
+<rect class="box" x="158" y="128" width="76" height="28" rx="7"/>
+<text class="code" x="196.0" y="146.5" text-anchor="middle">canary.55</text>
+<rect class="box" x="246" y="128" width="76" height="28" rx="7"/>
+<text class="code" x="284.0" y="146.5" text-anchor="middle">canary.56</text>
+<rect class="box" x="334" y="128" width="76" height="28" rx="7"/>
+<text class="code" x="372.0" y="146.5" text-anchor="middle">canary.57</text>
+<rect class="box" x="422" y="128" width="76" height="28" rx="7"/>
+<text class="code" x="460.0" y="146.5" text-anchor="middle">canary.58</text>
+<rect class="box" x="534" y="128" width="76" height="28" rx="7"/>
+<text class="code" x="572.0" y="146.5" text-anchor="middle">canary.59</text>
+<text class="t" x="36" y="192" text-anchor="start">latest</text>
+<text class="t3" x="36" y="208" text-anchor="start">stable</text>
+<rect class="box" x="158" y="180" width="340" height="28" rx="7"/>
+<text class="code" x="328.0" y="198.5" text-anchor="middle">0.11.0</text>
+<rect class="box-accent" x="534" y="180" width="76" height="28" rx="7"/>
+<text class="code-acc" x="572.0" y="198.5" text-anchor="middle">0.12.0</text>
+<text class="t3" x="384" y="238" text-anchor="middle">latest 只在 merge Release PR 時移動</text>
+</svg>

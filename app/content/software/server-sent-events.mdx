@@ -1,6 +1,7 @@
 ---
 title: Server-Sent Events (SSE)
 date: 2026-10-30
+description: SSE 是什麼、格式規範、斷線重連、和 polling 與 WebSocket 怎麼選，以及多台 Server 下的擴展、可用性與可靠性。
 thumb: /images/software/server-sent-events/cover.webp
 thumbAlt: 淺灰紙上，左邊一個深灰大圓、右邊一個深灰小方塊，中間一條細線串著一列藍色小圓點
 ogImage: /images/software/server-sent-events/og.jpg
@@ -249,7 +250,7 @@ Client 重連時，`EventSource` 會自動帶上 `Last-Event-ID`，Server 據此
 
 ![上半部是一般做法：Server 先把訊息存進資料庫，再發布事件到 Broker；如果在這兩步之間掛掉，事件就不會送出。下半部是 Transactional Outbox：訊息和待發布事件寫在同一個 transaction，由背景程式讀取、發布到 Broker，再標記為已發布。](/images/software/server-sent-events/outbox.svg)
 
-## 檢查清單 (給 AI agent 用)
+## 給 AI agent 的實作指南
 
 SSE 的格式幾行就能寫完，真正花功夫的是上線之後：連線分散在多台 Server、重啟時的重連風暴、斷線期間漏掉的事件。用 SSE 時，逐項確認：
 

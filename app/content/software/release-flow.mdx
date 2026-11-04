@@ -1,0 +1,603 @@
+---
+title: Release 流程與自動化
+date: 2026-11-04
+description: Release 由哪幾步組成、canary 和 stable 的差別，npm package 和 macOS app 怎麼 Release，以及怎麼用 GitHub Actions 自動化、把現有流程安全遷移過去。
+thumb: /images/software/release-flow/cover.webp
+thumbAlt: 淺灰紙上一排灰色小方塊，倒數第二個是藍色，正上方有一個深灰色的倒三角形指著它
+ogImage: /images/software/release-flow/og.jpg
+kind: 軟體工程
+---
+
+軟體工程中，Release 就是把某個時間點的程式碼打包成產物，放到使用者裝得到的地方。程式碼 merge 進 main，使用者還拿不到，要經過 Release，新功能和修正才會真的到他們手上。
+
+Release 為你的軟體切割出數個版本：使用者知道自己裝的是哪一版，你知道每一版包含哪些改動，出問題時也能指回上一個好的版本。
+
+這篇會談到 Release 由哪幾步組成、canary 和 stable 的差別，npm package 和 macOS app 怎麼 Release、怎麼驗證，怎麼把整套流程交給 CI 自動完成，以及怎麼在不打擾使用者的情況下，把現有流程遷移過去。
+
+## Release 在做什麼
+
+不管是 npm package、macOS app 還是 website，Release 都能歸為四步：
+
+1. **決定版本號**：ex. `0.12.0`。
+2. **Build**：把原始碼打包變成能交出去的版本，例如 npm 的 tarball、macOS 的 `.dmg`。
+3. **上傳**：把檔案放到使用者拿得到的地方，例如 npm registry、GitHub Release。
+4. **移動 latest**：把 latest 這個標記指到這一版。
+
+前三步做完，使用者還收不到新版。要把 **latest** 指到新版，使用者用 `npm install` 才裝得到。
+
+## canary、stable、latest
+
+任何 Release 都分成兩層：版本和標記。
+
+### 版本
+
+每次 Release 都會產生一個版本，發出去之後內容就不能再改。版本分兩種：
+
+- **正式版**：給所有使用者的版本，例如 `0.12.0`。常見叫法是 **stable**。
+- **預發布版**：正式發布之前，給測試者或想嘗鮮的人用的版本。**canary** 是其中一種，beta、rc 也是，名稱由專案自己取。
+
+stable 和 canary 是人取的分類名，npm 看不懂這兩個字，只看版本號的寫法：數字後面接了 `-`，例如 `0.12.1-canary.59.0`，就當成預發布版；`-` 後面寫 canary、beta 或其他字都一樣。預發布版不會被 `^0.12.0` 這種一般的版本範圍選到，使用者要明確指定才裝得到。
+
+### 標記
+
+標記是一個指向某個版本的名字，可以變，隨時可以改指別的版本。npm 叫它 dist-tag，Google Play 叫 track，Steam 叫 branch。
+
+- 名字和數量由你決定，一個版本可以同時被好幾個標記指著。
+- 一定有一個標記代表「給所有使用者的版本」，常見的名字是 **latest**。npm 上就是 `latest` dist-tag：`npm install my-pkg` 沒指定版本時，裝的就是它。
+- 其他標記要使用者主動選才會拿到。canary 常掛在 **next** 這類標記上，以 npm 為例，要 `npm install my-pkg@next` 才會裝到。
+
+![左邊是五個版本，由新到舊：0.12.1-canary.59.0、0.12.0、0.11.1-canary.58.0、0.11.1-canary.57.0、0.11.0，其中 0.12.0 和 0.11.0 是 stable，其餘是 canary，發出去就不能改。右邊是兩個標記：latest 指向 0.12.0，next 指向 0.12.1-canary.59.0。出問題時，latest 可以改指回 0.11.0。](/images/software/release-flow/versions-and-tags.svg)
+
+### latest 和 stable 不一定相同
+
+stable 會越積越多，latest 同一時間只指向一個版本。通常是最新的 stable，但兩者不一定相同：
+
+- **回退**：0.12.0 出問題時，把 latest 改指回 0.11.0。0.12.0 還是 stable，只是不再是 latest。
+- **舊版線的修補版**：latest 已經是 `2.0.0`，你替 1.x 修 bug 發了 `1.4.3`。它是 stable，但直接 `npm publish` 會把 latest 移到 `1.4.3`，新安裝的人會全部倒退回 1.x。這種版本要加 `--tag`，例如 `npm publish --tag v1`。
+
+### canary 怎麼運作
+
+每次 merge 進 main 都會發一版 canary，next 跟著往前移；latest 只在你決定發 stable 時才移動：
+
+![main 上有五次 merge。每次 merge 都發一版 canary，next 跟著往前移；latest 一直停在 0.11.0。直到 merge Release PR，才發出 stable 0.12.0，latest 移到 0.12.0。](/images/software/release-flow/channels.svg)
+
+canary 有兩個用處：
+
+- **及早發現 Release 流程壞掉**：每次 merge 都真的走一次完整的 Release 流程，從 build、上傳到有人裝起來。流程哪裡壞了，下一次 merge 就會發現，不用等到發 stable 那天。
+- **讓人先試新功能**：你和想嘗鮮的人主動選 canary 的標記，就能在 stable 之前用到新功能。
+
+不是每種產物都適合每次 merge 就發一版 canary，例如 build 很慢的 app。這時可以改用 draft 做類似的檢查：檔案先上傳到對外看不到的地方，確認齊全了才正式發布，例如 GitHub 的 draft release。
+
+## npm package 怎麼 Release
+
+### 手動 Release
+
+在本機發一版 npm package，通常是三個指令：
+
+```bash
+npm version minor        # package.json 改成 0.12.0，建立 commit 和 tag v0.12.0
+npm publish              # build、打包、上傳，輸入 OTP
+git push --follow-tags   # 把 commit 和 tag 推上 GitHub
+```
+
+`npm publish` 會依序做三件事：
+
+1. 跑 `prepublishOnly` script。這裡通常放 build、typecheck、test，任何一步失敗就不會上傳。
+2. 依 `package.json` 的 `files` 欄位，把要發的檔案打包成 tarball。
+3. 上傳到 registry，並把 `latest` 指到這一版。帳號開了 2FA 的話，這一步要輸入 OTP。
+
+registry 有一道保護：**同一個版本號只能發一次**，unpublish 之後也不能重用。發錯了不能覆蓋，只能再發一個新版本修正。
+
+想發一版、但不移動 latest，就加 `--tag`：
+
+```bash
+npm publish --tag next
+```
+
+canary 就是靠這個參數發到 `next`。
+
+### 驗證機制
+
+npm 要確認做 Release 的人有沒有權限：
+
+| 誰在 Release | 怎麼證明 |
+| --- | --- |
+| 你在本機 | 帳號密碼加 2FA。`npm login` 拿到的 session 兩小時就過期，publish 時還要輸入 OTP |
+| CI | 以前用長期有效的 npm token；現在改用 trusted publishing：GitHub 替這一次執行簽一張短期證明，npm 認這張證明，不用存任何 token |
+
+trusted publishing 底層用的是 OIDC，後面「npm package 怎麼透過 CI 自動 Release」會一步步設定。
+
+## npm package 怎麼透過 CI 自動 Release
+
+### 大概念
+
+目標是：merge 一般的 PR 時，自動發 canary；想發 stable 時，只要 merge 一個 PR。
+
+整條流程放在同一個 GitHub Actions workflow `release.yml`，每次 push 到 main 都會跑：
+
+![push 到 main 或手動觸發後，release-please job 先更新 Release PR，接著 pending job 判斷這次要發什麼，再分給兩個 Release job：stable job 發 stable 並移動 latest，canary job 發 canary 到 next。](/images/software/release-flow/release-workflow.svg)
+
+每個 job 只管一件事：
+
+- **release-please**：讀新的 commit，維護一個 Release PR。
+- **pending**：判斷這次要發什麼。npm 上還沒有 `package.json` 裡的版本，就發 stable；套件的檔案有改動，就發 canary。
+- **stable**：發 stable。
+- **canary**：發 canary 到 `next`。
+
+接下來分四步建。
+
+### 第一步：用 Release PR 決定版本號
+
+[release-please](https://github.com/googleapis/release-please) 是 Google 維護的工具。它讀 [Conventional Commits](https://www.conventionalcommits.org/) 格式的 commit message，決定下一個版本號：
+
+| commit | 版本號 |
+| --- | --- |
+| `fix: ...` | 升 patch，`0.11.0` → `0.11.1` |
+| `feat: ...` | 升 minor，`0.11.0` → `0.12.0` |
+| `feat!: ...`，或 body 裡有 `BREAKING CHANGE` | 升 major，`0.11.0` → `1.0.0` |
+
+每次有 PR merge 進 main，release-please 就開一個 Release PR，或更新已經開著的那個。Release PR 只改版本號和 CHANGELOG：`package.json` 和 `.release-please-manifest.json` 裡的版本，加上 CHANGELOG 的新段落。它會一直開著，隨每次 merge 重算版本號、補上新的 changelog。
+
+**你 merge Release PR 的那一刻，就是決定發 stable。** release-please 接著建立 tag 和 GitHub Release，main 上的 `package.json` 也變成新版本號。
+
+設定是兩個檔案：
+
+```json
+// release-please-config.json
+{
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "include-component-in-tag": false,
+      "bump-minor-pre-major": true
+    }
+  }
+}
+```
+
+```json
+// .release-please-manifest.json
+{ ".": "0.11.0" }
+```
+
+- `include-component-in-tag: false` 讓 tag 維持 `v0.12.0` 的格式。
+- `bump-minor-pre-major` 讓 1.0 之前的 breaking change 只升 minor，不會一下跳到 `1.0.0`。
+- manifest 記著目前的版本，release-please 從這裡往上算。
+
+workflow 裡的 job 很短：
+
+```yaml
+release-please:
+  runs-on: ubuntu-latest
+  permissions:
+    contents: write
+    pull-requests: write
+  steps:
+    - uses: googleapis/release-please-action@v5
+```
+
+### 第二步：用 OIDC 取代 token
+
+以前 CI Release 的做法，是建一個長期有效的 npm token，存進 GitHub secret。這條路 npm 正在關：classic token 在 2025 年 12 月全部撤銷，有寫入權限的 granular token 最長 90 天就過期。
+
+取代它的是 **trusted publishing**，底層用的是 OIDC。GitHub 會替「某個 repo、某個 workflow 的這一次執行」簽一張幾分鐘有效的證明。npm 事先設定好信任這張證明，收到時就直接給 publish 權限：
+
+![三個角色：Release job、GitHub OIDC provider、npm registry。Release job 向 GitHub 要一張 ID token，GitHub 回傳簽好的 JWT，裡面記著 repo、workflow 檔名和 environment。Release job 執行 npm publish 時附上 JWT，registry 比對 trusted publisher 設定後，發給幾分鐘有效的 publish 權限，job 再上傳 tarball 和 provenance。](/images/software/release-flow/oidc.svg)
+
+整段都在 `npm publish` 內部完成，workflow 裡不用寫任何 token。要做的設定有三件：
+
+1. 在 npmjs.com 套件設定的 Trusted Publisher 區塊，填 GitHub 帳號、repo 名稱、workflow 檔名 `release.yml`，和 environment 名稱 `release`，並在 Allowed actions 勾選 `npm publish`。environment 是 GitHub 的部署環境設定，可以限定只有 main 能用；其他地方簽出的證明，npm 一律拒絕。
+2. Release job 宣告 `permissions: id-token: write`，才拿得到這張證明。
+3. 用 GitHub 提供的 runner，npm CLI 11.5.1 以上、Node 22.14.0 以上。
+
+repo 和套件都是 public 時，npm 還會自動附上 **provenance**：一份證明，記錄這個版本來自哪個 commit、哪一次 CI 執行。npmjs.com 的套件頁會顯示它。
+
+有兩件事要注意：
+
+- npm 存檔時不會驗證設定，填錯要到 publish 那一刻才會報錯。設定完 2 天內沒有成功 publish 過一次，設定就會失效，要刪掉重建。
+- trusted publisher 預設只允許 `npm stage publish`：上傳之後，還要有人用 2FA 核准才會上線。直接 `npm publish` 和 `npm dist-tag` 都要另外勾選，`npm deprecate` 則完全不支援。
+
+第一次用 OIDC 成功 Release 之後，到套件設定的 Publishing access，選「Require two-factor authentication and disallow tokens」。從此只有 trusted publisher 和你本人加 2FA 能 Release。
+
+### 第三步：先問 registry，讓重跑永遠安全
+
+pending job 不看「這次是不是 Release PR 的 merge」，而是直接問 registry 有沒有這一版：
+
+```yaml
+- id: stable
+  run: |
+    v=$(node -p "require('./package.json').version")
+    if npm view "my-pkg@$v" version >/dev/null 2>&1; then
+      echo "publish=false" >> "$GITHUB_OUTPUT"
+    else
+      echo "publish=true" >> "$GITHUB_OUTPUT"
+    fi
+```
+
+差別出現在失敗之後。release-please 的 action 也有 `release_created` 這個 output，但它只在建立 release 的那一次執行是 true。那次 publish 如果剛好網路失敗，下一次執行時 output 已經變回 false，這一版就永遠不會發。改成問 registry，之後任何一次 push 或手動重跑都會補發；已經發過的版本，重跑也只會跳過。
+
+canary 的判斷也放在 pending job。push 觸發時，只有套件裡的檔案有改動才發；手動觸發時一律發：
+
+```yaml
+- id: canary
+  env:
+    EVENT: ${{ github.event_name }}
+    BEFORE: ${{ github.event.before }}
+  run: |
+    if [ "$EVENT" = push ] && git diff --quiet "$BEFORE" HEAD -- src package.json; then
+      echo "publish=false" >> "$GITHUB_OUTPUT"
+    else
+      echo "publish=true" >> "$GITHUB_OUTPUT"
+    fi
+```
+
+把 `src package.json` 換成你 `files` 欄位裡的路徑。checkout 時要加 `fetch-depth: 0`，`git diff` 才找得到上一個 commit。
+
+### 第四步：Release job
+
+stable 和 canary 的 job 幾乎一樣，差在 canary 會先改版本號，再發到 `next`：
+
+```yaml
+stable:
+  needs: pending
+  if: needs.pending.outputs.stable == 'true'
+  runs-on: ubuntu-latest
+  environment: release
+  permissions:
+    contents: read
+    id-token: write
+  steps:
+    - uses: actions/checkout@v7
+    - uses: actions/setup-node@v7
+      with:
+        node-version: 24
+        registry-url: https://registry.npmjs.org
+        package-manager-cache: false
+    - run: npm ci
+    - run: npm publish
+
+canary:
+  needs: pending
+  if: needs.pending.outputs.canary == 'true'
+  # runs-on、environment、permissions 和前三個 step 都跟 stable job 一樣
+  steps:
+    - run: npm version prepatch --preid "canary.$GITHUB_RUN_NUMBER" --no-git-tag-version
+    - run: npm publish --tag next
+```
+
+`npm version prepatch --preid canary.57` 會把 `0.11.0` 改成 `0.11.1-canary.57.0`。`57` 是 workflow 的執行編號，每次都不同，版本號就不會撞。依 semver 的規則，`0.11.1-canary.57.0` 排在 `0.11.0` 之後、`0.11.1` 之前，剛好是「比現在的 stable 新、比下一個 stable 舊」。
+
+`--no-git-tag-version` 讓它只改 `package.json`，不建 commit 和 tag。canary 的版本號只存在 registry 上，不會寫回 repo。
+
+另外三個細節：
+
+- **所有 Release job 放在同一個 workflow。** 用 GitHub 內建的 `GITHUB_TOKEN` 建立的 tag 和 release，不會觸發其他 workflow。如果拆成「release-please 建 release，另一個 workflow 收到 release 事件再 publish」，另一個 workflow 根本不會被叫起來。
+- **Release job 不開 package manager cache。** cache 可能被其他 branch 的 workflow 寫入，讓惡意內容混進你發出去的版本。上面的 `package-manager-cache: false` 就是在關它。
+- **workflow 最上層寫 `permissions: {}`**，每個 job 只拿自己需要的權限。只有 Release job 拿 `id-token: write`。
+
+## macOS app 怎麼 Release
+
+### 手動 Release
+
+macOS app 比 npm 多兩道 Apple 的手續：簽章和公證，下一節「驗證機制」會說明。
+
+Electron app 用 electron-builder 的話，一個指令就做完 build、簽章、公證和上傳：
+
+```bash
+electron-builder --mac --publish always
+```
+
+它會產出三種檔案：
+
+- `.dmg`：給使用者從網站下載安裝。
+- `.zip`：給 `electron-updater` 自動更新時下載。
+- `latest-mac.yml`：記錄最新的版本號和檔案 hash。`electron-updater` 讀它來決定要不要更新。
+
+`--publish always` 會把這些檔案上傳到 GitHub 上的一個 draft release。draft 對外看不到，網站的下載連結和 `electron-updater` 都讀不到它。檢查完，再把它改成正式 release（不再是 draft、對外看得到的 release），並標成 Latest：
+
+```bash
+gh release edit desktop-v0.1.2 --draft=false --latest
+```
+
+這一步才是移動 latest。
+
+### 驗證機制
+
+macOS 要確認兩件事：app 是誰做的，以及做好之後有沒有被動過手腳。靠的是兩道 Apple 的手續：
+
+- **Code signing（簽章）**：用 Apple 發的 Developer ID Application 憑證簽 app，證明 app 出自你的開發者帳號。簽完之後，app 裡任何檔案被改過，簽章就會失效。
+- **Notarization（公證）**：把簽好的 app 上傳給 Apple 掃描惡意程式，通過後 Apple 回一張公證票，附在 app 上。
+
+使用者這邊，macOS 會自動檢查：
+
+- **第一次打開時**：Gatekeeper 檢查簽章和公證票，兩者都在才直接放行。
+- **自動更新時**：Electron 的自動更新在安裝前會檢查新版的簽章，確認和目前的 app 出自同一個開發者才會裝。
+
+簽章和公證都要先加入 Apple Developer Program，每年 99 美元。沒加入的話只能用 ad-hoc 簽章：使用者第一次打開時要去系統設定手動允許，自動更新也沒辦法安裝。
+
+在 CI 上簽章和公證都不需要 OTP：簽章用從 Keychain 匯出的憑證檔，公證用 App Store Connect 的 API key。後面「macOS app 怎麼透過 CI 自動 Release」會講怎麼設定。
+
+## macOS app 怎麼透過 CI 自動 Release
+
+### 大概念
+
+app 和 npm 共用同一個 `release.yml`，多一個在 macOS runner 上跑的 desktop job。
+
+pending job 也多一個判斷：GitHub 上 `desktop-v<版本號>` 這個 release 是不是已經是正式 release。不存在、或還是 draft，就 build。
+
+![desktop job 依序 build、簽章、公證、上傳到 draft release、檢查檔案齊全，這五步使用者都看不到。最後一步改成正式 release 並標成 Latest，網站下載連結和 electron-updater 才讀得到新版。](/images/software/release-flow/macos-release.svg)
+
+版本號一樣由 release-please 決定。app 和 npm package 放在同一個 repo 時，用 manifest 模式管兩個元件，各自依改到的路徑決定要不要升版：
+
+```json
+{
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "include-component-in-tag": false,
+      "exclude-paths": ["desktop"]
+    },
+    "desktop": {
+      "release-type": "node",
+      "component": "desktop",
+      "draft": true,
+      "force-tag-creation": true
+    }
+  }
+}
+```
+
+- `component: "desktop"` 讓 app 的 tag 變成 `desktop-v0.1.2`，和 npm 的 `v0.12.0` 分開。electron-builder 的 `publish` 設定也要把 `tagNamePrefix` 設成 `desktop-v`，上傳時才會對到同一個 tag。
+- `draft: true` 讓 release-please 建出 draft，沿用「先上傳、檢查完才改成正式」的設計。
+- GitHub 不會替 draft release 建 tag，所以要加 `force-tag-creation`，release-please 下次才找得到上一版。
+
+### 逐步設定
+
+**1. 準備憑證。** 在 Apple Developer 網站建 Developer ID Application 憑證，從 Keychain 匯出 `.p12`，base64 之後存成 secret。再到 App Store Connect 建一把 API key（`.p8`），連同 key ID 和 issuer ID 一起存成 secret。API key 不需要 2FA、也不會過期，CI 公證不用 OTP 就是靠它。
+
+**2. 把 secret 放進 `release` environment。** Apple 沒有 OIDC，這些都是長期有效的 secret。放進限定 main 才能用的 environment，PR branch 上的 workflow 就讀不到。
+
+**3. pending job 加上 desktop 的判斷。**
+
+```yaml
+- id: desktop
+  env:
+    GH_TOKEN: ${{ github.token }}
+  run: |
+    tag="desktop-v$(node -p "require('./desktop/package.json').version")"
+    echo "tag=$tag" >> "$GITHUB_OUTPUT"
+    draft=$(gh release view "$tag" --json isDraft --jq .isDraft 2>/dev/null || echo missing)
+    if [ "$draft" = false ]; then build=false; else build=true; fi
+    echo "build=$build" >> "$GITHUB_OUTPUT"
+```
+
+**4. desktop job。**
+
+```yaml
+desktop:
+  needs: pending
+  if: needs.pending.outputs.desktop == 'true'
+  runs-on: macos-15
+  environment: release
+  permissions:
+    contents: write
+  env:
+    TAG: ${{ needs.pending.outputs.desktop-tag }}
+    GH_TOKEN: ${{ github.token }}
+  defaults:
+    run:
+      working-directory: desktop
+  steps:
+    - uses: actions/checkout@v7
+    - uses: actions/setup-node@v7
+      with:
+        node-version: 24
+        package-manager-cache: false
+    - run: npm ci
+    - run: echo "$APPLE_API_KEY_P8" > "$RUNNER_TEMP/key.p8"
+      env:
+        APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
+    - run: npx electron-builder --mac --publish always
+      env:
+        CSC_LINK: ${{ secrets.MAC_CERT_P12_BASE64 }}
+        CSC_KEY_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
+        APPLE_API_KEY: ${{ runner.temp }}/key.p8
+        APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+        APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+    - name: Check the draft has every file
+      run: |
+        assets=$(gh release view "$TAG" --json assets --jq '.assets[].name')
+        for ext in dmg zip yml; do
+          grep -q "\.$ext$" <<< "$assets" || { echo "missing .$ext"; exit 1; }
+        done
+    - run: gh release edit "$TAG" --draft=false --latest
+```
+
+electron-builder 讀 `CSC_LINK` 和 `CSC_KEY_PASSWORD` 匯入憑證並簽章，讀三個 `APPLE_API_*` 送公證，再用 `GH_TOKEN` 上傳到 draft。build 中途失敗的話，draft 上可能留下一部分檔案，重跑前先把那個 draft 刪掉。
+
+## 如何驗證
+
+整套流程最難驗證的，是真的 Release 那一段：OIDC 換權限、上傳、provenance。不真的發一次，就測不到。但真的發，又怕使用者收到。
+
+回到前面的四步模型：**使用者只透過 latest 拿到新版。** 只要 latest 沒動，其他東西怎麼測都不會影響使用者。所以驗證可以分三層，前兩層完全不碰 latest：
+
+![三層驗證。第一層 dry run 驗證判斷和 build，什麼都不上傳。第二層 canary 真的發一版到 next，驗證 OIDC、上傳和 provenance，latest 沒動。第三層第一個 stable 才移動 latest，等真的有內容要給使用者時才發。](/images/software/release-flow/verify-layers.svg)
+
+| 層 | 驗證什麼 | 怎麼做 |
+| --- | --- | --- |
+| 1. dry run | 判斷和 build 的邏輯 | 整條流程照跑，什麼都不上傳 |
+| 2. canary | 真正的 Release 路徑：OIDC 換權限、上傳、provenance | 真的發一版到 `next`，latest 不動 |
+| 3. 第一個 stable | 移動 latest、使用者端的更新 | 等真的有東西要給使用者時才發。使用者會收到，但這本來就是要發的版本 |
+
+### dry run 開關
+
+在 `release.yml` 加一個 dry run 開關。它不只遷移時有用，之後每次改 Release 流程都用得到：
+
+```yaml
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        type: boolean
+        default: true
+```
+
+push 觸發時沒有 inputs，`inputs.dry_run` 是空值，所以照常 Release。手動觸發時預設是 dry run。
+
+pending 的判斷照常執行，log 裡看得到它決定要不要發 stable、canary、desktop。但 dry run 時，canary 和 desktop job 不管判斷結果一律會跑，這樣每次 dry run 都會完整走一次打包和 build。各個 job 依開關改變行為：
+
+```yaml
+# canary job，desktop job 同理
+if: inputs.dry_run || needs.pending.outputs.canary == 'true'
+
+# canary job
+- run: npm publish --tag next ${{ inputs.dry_run && '--dry-run' || '' }}
+
+# stable job：仍照 pending 的判斷，有待發的 stable 時才跑
+- run: npm publish ${{ inputs.dry_run && '--dry-run' || '' }}
+
+# desktop job：只 build 不上傳，把產物存成 workflow artifact
+- if: inputs.dry_run
+  run: npx electron-builder --mac --publish never
+- if: inputs.dry_run
+  uses: actions/upload-artifact@v7
+  with:
+    name: desktop
+    path: desktop/release/*.dmg
+```
+
+- `npm publish --dry-run` 會完整跑 `prepublishOnly` 和打包，列出 tarball 裡的每個檔案，只是不上傳。
+- stable job 不能一律跑：版本已經在 registry 上時，`npm publish --dry-run` 會直接報錯 `You cannot publish over the previously published versions`。canary 先改了版本號，不會撞到，打包的檔案又和 stable 一樣，所以平常的 dry run 看 canary job 就夠了。
+- `--publish never` 讓 electron-builder 照常 build、簽章、公證，只是不上傳。desktop job 原本上傳和改成正式 release 的 step，要加上 `if: ${{ !inputs.dry_run }}`。
+
+## 如何遷移：不發新版，先把流程建好
+
+以我的專案 [ezdesign](https://ezdesign.dev) 為例。它有一個 npm package `@cychien/ezdesign`，目前是 0.11.0，在本機輸入 OTP 手動發；還有一個 macOS app，目前是 `desktop-v0.1.1`，要手動觸發 workflow 才會發。0.11.0 之後已經累積了幾個 `feat` 和 `fix` 還沒發，所以 0.12.0 本來就是一個有內容的版本。
+
+ezdesign 的使用者只從兩個地方拿到新版：npm 的 `latest` dist-tag（CLI 的更新檢查只讀它），和 GitHub 上標成 Latest 的正式 release（網站下載連結和 `electron-updater` 都讀它）。遷移的前四步都不碰這兩個。
+
+### 步驟 1：先 merge 一版沒有 push 觸發的 `release.yml`
+
+這是最容易出意外的地方。新增 `release.yml` 的那個 PR merge 進 main，本身就是一次 push。檔案一開始就有 `on: push` 的話，它會立刻跑起來。
+
+這個 PR 剛好會改到套件裡的檔案：release-please 要在 `skills/ezdesign/SKILL.md` 加上版本標記。canary 判斷會認定套件內容有變，直接發一版。所以第一版只留 `workflow_dispatch`。
+
+merge 之前，先在本機看 release-please 會算出什麼：
+
+```bash
+npx release-please release-pr --dry-run \
+  --token="$(gh auth token)" --repo-url=cychien/ezdesign
+```
+
+確認三件事：
+
+- npm 算出來是 0.12.0。
+- changelog 只包含 0.11.0 之後的 commit。
+- desktop 沒有被升版，因為 `desktop/` 從 0.1.1 之後沒有改動。
+
+repo 裡只有 `v0.11.0` 的 tag、沒有對應的 GitHub Release 時，release-please 可能找不到起點，把整段歷史都算進來。遇到這種情況，在 config 加上 `"bootstrap-sha": "9425f23"`（0.11.0 那個 commit），再跑一次。這一步完全在本機，不會開 PR。
+
+### 步驟 2：在 main 上手動觸發 dry run
+
+```bash
+gh workflow run release.yml --ref main -f dry_run=true
+```
+
+看三件事：
+
+- pending 判斷 stable 不用發（registry 已經有 0.11.0），desktop 也不用發（`desktop-v0.1.1` 已經是正式 release）。
+- canary job 的 `npm publish --dry-run` 列出的檔案，和本機 `npm pack --dry-run` 一致。registry 上的 0.11.0 是 46 個檔案。
+- 下載 workflow artifact 裡的 `.dmg`，在自己的 Mac 上安裝打開，確認 app 能啟動 daemon、打開專案。這等於把 desktop 的完整 build 驗證過一次，但沒有建立任何 release。
+
+### 步驟 3：設定 trusted publisher，第一次真發就發 canary
+
+在 npmjs.com 設好 trusted publisher 之後，2 天內要成功 publish 一次，不然設定會失效。這次就用 canary 來發：
+
+```bash
+gh workflow run release.yml --ref main -f dry_run=false
+```
+
+這次只有 canary job 會真的 Release。觸發方式不是 push，canary 判斷落在「一律發」那一支；npm 的 0.11.0 和 desktop 的 0.1.1 都已經發過，stable job 和 desktop job 會自動跳過。
+
+發完驗證：
+
+```bash
+npm view @cychien/ezdesign dist-tags     # latest 還是 0.11.0，next 是新的 canary
+npx -y @cychien/ezdesign@next --version  # 印出 canary 的版本號
+```
+
+npmjs.com 上那一版的頁面，會出現 provenance 區塊，連回這次的 workflow run。
+
+**這一版不是為了測試而多發的 release。** 它就是之後每次 merge 都會發的那種 canary，只是第一次發。latest 沒動，沒有使用者會收到它。
+
+### 步驟 4：打開 push 觸發
+
+把 `on: push` 加回去，merge 進 main。從這時起：
+
+- 每次 merge 都會發一版 canary 到 `next`。
+- release-please 開出 0.12.0 的 Release PR。
+
+先不要 merge Release PR，讓它開著累積。
+
+### 步驟 5：第一個 stable
+
+等你覺得 0.12.0 該給使用者了，再 merge Release PR。這是整個遷移裡第一個會影響使用者的動作，而且本來就是要發的版本。merge 之後確認：
+
+- `npm view @cychien/ezdesign dist-tags` 的 latest 是 0.12.0。
+- GitHub 上出現 `v0.12.0` 的 tag 和 release。
+- 自己機器上舊版的 ezdesign daemon，有被更新檢查升到 0.12.0。
+
+確認沒問題後，到 npm 套件設定開啟「disallow tokens」，再刪掉舊的手動 Release workflow `release-desktop.yml`。
+
+### 步驟 6：desktop 等到真的有改動再發
+
+`desktop/` 下一次有 `feat` 或 `fix` 時，release-please 會在 Release PR 裡一起升 desktop 的版本。build 在步驟 2 已經驗證過，這次多驗證的只有「上傳到 draft、檢查檔案齊全、改成正式 release」這一段。
+
+不想等的話，可以先手動測這一段，一樣不影響使用者：
+
+1. 用 dry run 的 build，加上一個只建 draft、不改成正式 release 的分支。
+2. 下載 draft 裡的檔案驗證。
+3. 驗證完，把 draft 和 tag 一起刪掉：
+
+```bash
+gh release delete desktop-v0.1.2 --cleanup-tag --yes
+```
+
+## 萬一真的發錯了
+
+先止血：把 latest 指回上一個好的版本，新的使用者就不會再拿到壞版。已經升級的使用者，再另外處理。
+
+### npm
+
+```bash
+npm dist-tag add my-pkg@0.11.0 latest   # latest 指回舊版
+npm deprecate my-pkg@0.12.0 "..."       # 標記壞版
+```
+
+已經升級的使用者不會自動降級，因為更新檢查通常只會往新的方向升。要再發一個修正版 0.12.1。
+
+這兩個指令要在本機用你的帳號加 2FA 執行。trusted publisher 不勾 dist-tag 權限，`npm deprecate` 也本來就不支援 OIDC。日常 Release 已經不用 OTP，緊急處理時留一道人工驗證，反而比較安全。
+
+### macOS app
+
+```bash
+gh release edit desktop-v0.1.1 --latest       # Latest 標回舊版
+gh release edit desktop-v0.1.2 --draft=true   # 壞的那版改回 draft
+```
+
+`electron-updater` 讀的是 Latest release 的 `latest-mac.yml`，改回去之後，就不會再有人被更新到壞版。
+
+## 容易做錯的地方
+
+這些地方和直覺相反，做錯了不是流程跑不起來，就是不小心把版本發給使用者：
+
+- **trusted publisher 預設不能直接 publish。** 預設只允許 `npm stage publish`，要在 Allowed actions 勾 `npm publish`，CI 才能直接 Release。
+- **trusted publisher 設定 2 天內沒用過就會失效。** 設好之後要盡快成功 publish 一次。
+- **對已經存在的版本跑 `npm publish --dry-run` 會報錯。** 所以 dry run 時，stable job 要照 pending 的判斷跑，不能一律跑。
+- **Release job 要放在同一個 workflow。** 用 `GITHUB_TOKEN` 建立的 tag 和 release 不會觸發其他 workflow。
+- **用 registry 判斷要不要發，不要用 release-please 的 `release_created`。** 它只在建立 release 的那次執行是 true，那次失敗就永遠補不回來。
+- **第一版 `release.yml` 不要帶 `on: push`。** 新增它的 PR merge 進 main 本身就是一次 push，會立刻 Release。
+- **canary 的版本號一定要帶 `-`。** 沒有 `-` 就會被當成 stable，一般的版本範圍會選到它。
+- **CI 不碰 `npm dist-tag`。** 回退由人在本機用 2FA 執行，latest 只在 merge Release PR 時移動。

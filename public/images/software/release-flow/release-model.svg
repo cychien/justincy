@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="672" height="312" viewBox="0 0 672 312" role="img" aria-label="三種產物都走同樣四步：決定版本號、build、上傳、移動 latest。使用者只讀最後一步的 latest，前三步做完還看不到新版">
+<title>三種產物都走同樣四步：決定版本號、build、上傳、移動 latest。使用者只讀最後一步的 latest，前三步做完還看不到新版</title>
+
+<style>
+  .bg { fill: #fafafa; }
+  .card { fill: #ffffff; stroke: #e4e4e7; }
+  .box { fill: #ffffff; stroke: #a1a1aa; stroke-width: 1.25; }
+  .box-dim { fill: #fafafa; stroke: #d4d4d8; stroke-width: 1.25; stroke-dasharray: 4 3; }
+  .box-accent { fill: #eff6ff; stroke: #2563eb; stroke-width: 1.25; }
+  .group { fill: none; stroke: #a1a1aa; stroke-width: 1.25; stroke-dasharray: 4 3; }
+  .group-accent { fill: #2563eb; fill-opacity: 0.05; stroke: #2563eb; stroke-width: 1.25; stroke-dasharray: 4 3; }
+  .t { fill: #18181b; font: 500 13px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t-strong { fill: #18181b; font: 600 14px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t2 { fill: #52525b; font: 400 12.5px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t3 { fill: #a1a1aa; font: 400 11.5px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t-acc { fill: #2563eb; font: 600 12.5px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t-dim { fill: #a1a1aa; font: 500 13px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .code { fill: #52525b; font: 400 11.5px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .code-acc { fill: #2563eb; font: 600 11.5px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .life { stroke: #d4d4d8; stroke-width: 1.25; stroke-dasharray: 3 3; }
+  .axis { stroke: #d4d4d8; stroke-width: 1; }
+  .line { stroke: #71717a; stroke-width: 1.5; fill: none; }
+  .line-dim { stroke: #d4d4d8; stroke-width: 1.5; fill: none; }
+  .ev { stroke: #2563eb; stroke-width: 1.75; fill: none; }
+  .line-dash { stroke: #a1a1aa; stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+  .dot { fill: #2563eb; }
+  .dot-line { fill: #71717a; }
+  .dot-hollow { fill: #ffffff; stroke: #d4d4d8; stroke-width: 1.5; }
+  .head-line { fill: #71717a; }
+  .head-ev { fill: #2563eb; }
+  .head-dim { fill: #d4d4d8; }
+  .mask { fill: #ffffff; }
+  @media (prefers-color-scheme: dark) {
+    .bg { fill: #18181b; }
+    .card { fill: #09090b; stroke: #27272a; }
+    .box { fill: #18181b; stroke: #52525b; }
+    .box-dim { fill: #18181b; stroke: #3f3f46; }
+    .box-accent { fill: #172554; stroke: #3b82f6; }
+    .group { stroke: #52525b; }
+    .group-accent { fill: #3b82f6; fill-opacity: 0.08; stroke: #3b82f6; }
+    .t, .t-strong { fill: #fafafa; }
+    .t2, .code { fill: #a1a1aa; }
+    .t3, .t-dim { fill: #71717a; }
+    .t-acc, .code-acc { fill: #60a5fa; }
+    .life, .axis { stroke: #3f3f46; }
+    .line { stroke: #a1a1aa; }
+    .line-dim { stroke: #52525b; }
+    .ev { stroke: #3b82f6; }
+    .line-dash { stroke: #71717a; }
+    .dot { fill: #3b82f6; }
+    .dot-line { fill: #a1a1aa; }
+    .dot-hollow { fill: #09090b; stroke: #52525b; }
+    .head-line { fill: #a1a1aa; }
+    .head-ev { fill: #3b82f6; }
+    .head-dim { fill: #52525b; }
+    .mask { fill: #09090b; }
+  }
+</style>
+<defs>
+  <marker id="a-line" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-line" d="M0 0 L10 5 L0 10 z"/></marker>
+  <marker id="a-ev" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-ev" d="M0 0 L10 5 L0 10 z"/></marker>
+  <marker id="a-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-dim" d="M0 0 L10 5 L0 10 z"/></marker>
+</defs>
+
+<rect class="bg" width="672" height="312"/>
+<rect class="card" x="16" y="16" width="640" height="280" rx="10"/>
+<text class="t-strong" x="36" y="44" text-anchor="start">Release 的四步</text>
+<text class="t" x="190" y="82" text-anchor="middle">1 決定版本號</text>
+<text class="t" x="318" y="82" text-anchor="middle">2 Build</text>
+<text class="t" x="446" y="82" text-anchor="middle">3 上傳</text>
+<text class="t-acc" x="574" y="82" text-anchor="middle">4 移動 latest</text>
+<text class="t" x="36" y="124.5" text-anchor="start">npm package</text>
+<rect class="box" x="132" y="100" width="116" height="40" rx="7"/>
+<text class="t2" x="190.0" y="124.5" text-anchor="middle">0.12.0</text>
+<rect class="box" x="260" y="100" width="116" height="40" rx="7"/>
+<text class="t2" x="318.0" y="124.5" text-anchor="middle">tarball</text>
+<rect class="box" x="388" y="100" width="116" height="40" rx="7"/>
+<text class="t2" x="446.0" y="124.5" text-anchor="middle">npm registry</text>
+<rect class="box-accent" x="516" y="100" width="116" height="40" rx="7"/>
+<text class="t-acc" x="574.0" y="124.5" text-anchor="middle">latest dist-tag</text>
+<text class="t" x="36" y="176.5" text-anchor="start">macOS app</text>
+<rect class="box" x="132" y="152" width="116" height="40" rx="7"/>
+<text class="t2" x="190.0" y="176.5" text-anchor="middle">0.1.2</text>
+<rect class="box" x="260" y="152" width="116" height="40" rx="7"/>
+<text class="t2" x="318.0" y="176.5" text-anchor="middle">.dmg、.zip</text>
+<rect class="box" x="388" y="152" width="116" height="40" rx="7"/>
+<text class="t2" x="446.0" y="176.5" text-anchor="middle">draft release</text>
+<rect class="box-accent" x="516" y="152" width="116" height="40" rx="7"/>
+<text class="t-acc" x="574.0" y="176.5" text-anchor="middle">標成 Latest</text>
+<text class="t" x="36" y="228.5" text-anchor="start">website</text>
+<rect class="box" x="132" y="204" width="116" height="40" rx="7"/>
+<text class="t3" x="190.0" y="228.5" text-anchor="middle">沒有版本號</text>
+<rect class="box" x="260" y="204" width="116" height="40" rx="7"/>
+<text class="t2" x="318.0" y="228.5" text-anchor="middle">bundle</text>
+<rect class="box" x="388" y="204" width="116" height="40" rx="7"/>
+<text class="t2" x="446.0" y="228.5" text-anchor="middle">Cloudflare</text>
+<rect class="box-accent" x="516" y="204" width="116" height="40" rx="7"/>
+<text class="t-acc" x="574.0" y="228.5" text-anchor="middle">接流量的部署</text>
+<line class="line-dim" x1="132" y1="262" x2="504" y2="262"/>
+<text class="t3" x="318" y="282" text-anchor="middle">前三步做完，使用者還看不到</text>
+<line class="ev" x1="516" y1="262" x2="632" y2="262"/>
+<text class="t-acc" x="574" y="282" text-anchor="middle">使用者只讀這裡</text>
+</svg>

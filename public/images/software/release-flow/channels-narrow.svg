@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="336" height="324" viewBox="0 0 336 324" role="img" aria-label="main 上有五次 merge。每次 merge 都發一版 canary 到 next；latest 一直停在 0.11.0，直到 merge Release PR 才發出 stable 0.12.0">
+<title>main 上有五次 merge。每次 merge 都發一版 canary 到 next；latest 一直停在 0.11.0，直到 merge Release PR 才發出 stable 0.12.0</title>
+
+<style>
+  .bg { fill: #fafafa; }
+  .card { fill: #ffffff; stroke: #e4e4e7; }
+  .box { fill: #ffffff; stroke: #a1a1aa; stroke-width: 1.25; }
+  .box-dim { fill: #fafafa; stroke: #d4d4d8; stroke-width: 1.25; stroke-dasharray: 4 3; }
+  .box-accent { fill: #eff6ff; stroke: #2563eb; stroke-width: 1.25; }
+  .group { fill: none; stroke: #a1a1aa; stroke-width: 1.25; stroke-dasharray: 4 3; }
+  .group-accent { fill: #2563eb; fill-opacity: 0.05; stroke: #2563eb; stroke-width: 1.25; stroke-dasharray: 4 3; }
+  .t { fill: #18181b; font: 500 13px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t-strong { fill: #18181b; font: 600 14px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t2 { fill: #52525b; font: 400 12.5px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t3 { fill: #a1a1aa; font: 400 11.5px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t-acc { fill: #2563eb; font: 600 12.5px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .t-dim { fill: #a1a1aa; font: 500 13px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; }
+  .code { fill: #52525b; font: 400 11.5px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .code-acc { fill: #2563eb; font: 600 11.5px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .life { stroke: #d4d4d8; stroke-width: 1.25; stroke-dasharray: 3 3; }
+  .axis { stroke: #d4d4d8; stroke-width: 1; }
+  .line { stroke: #71717a; stroke-width: 1.5; fill: none; }
+  .line-dim { stroke: #d4d4d8; stroke-width: 1.5; fill: none; }
+  .ev { stroke: #2563eb; stroke-width: 1.75; fill: none; }
+  .line-dash { stroke: #a1a1aa; stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+  .dot { fill: #2563eb; }
+  .dot-line { fill: #71717a; }
+  .dot-hollow { fill: #ffffff; stroke: #d4d4d8; stroke-width: 1.5; }
+  .head-line { fill: #71717a; }
+  .head-ev { fill: #2563eb; }
+  .head-dim { fill: #d4d4d8; }
+  .mask { fill: #ffffff; }
+  @media (prefers-color-scheme: dark) {
+    .bg { fill: #18181b; }
+    .card { fill: #09090b; stroke: #27272a; }
+    .box { fill: #18181b; stroke: #52525b; }
+    .box-dim { fill: #18181b; stroke: #3f3f46; }
+    .box-accent { fill: #172554; stroke: #3b82f6; }
+    .group { stroke: #52525b; }
+    .group-accent { fill: #3b82f6; fill-opacity: 0.08; stroke: #3b82f6; }
+    .t, .t-strong { fill: #fafafa; }
+    .t2, .code { fill: #a1a1aa; }
+    .t3, .t-dim { fill: #71717a; }
+    .t-acc, .code-acc { fill: #60a5fa; }
+    .life, .axis { stroke: #3f3f46; }
+    .line { stroke: #a1a1aa; }
+    .line-dim { stroke: #52525b; }
+    .ev { stroke: #3b82f6; }
+    .line-dash { stroke: #71717a; }
+    .dot { fill: #3b82f6; }
+    .dot-line { fill: #a1a1aa; }
+    .dot-hollow { fill: #09090b; stroke: #52525b; }
+    .head-line { fill: #a1a1aa; }
+    .head-ev { fill: #3b82f6; }
+    .head-dim { fill: #52525b; }
+    .mask { fill: #09090b; }
+  }
+</style>
+<defs>
+  <marker id="a-line" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-line" d="M0 0 L10 5 L0 10 z"/></marker>
+  <marker id="a-ev" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-ev" d="M0 0 L10 5 L0 10 z"/></marker>
+  <marker id="a-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-dim" d="M0 0 L10 5 L0 10 z"/></marker>
+</defs>
+
+<rect class="bg" width="336" height="324"/>
+<rect class="card" x="16" y="16" width="304" height="292" rx="10"/>
+<text class="t-strong" x="32" y="44" text-anchor="start">canary 和 stable</text>
+<text class="t3" x="34" y="70" text-anchor="start">merge</text>
+<text class="t3" x="174" y="70" text-anchor="middle">next</text>
+<text class="t3" x="264" y="70" text-anchor="middle">latest</text>
+<line class="line" x1="40" y1="88" x2="40" y2="276"/>
+<circle class="dot-line" cx="40" cy="98" r="5"/>
+<text class="code" x="54" y="102" text-anchor="start">feat</text>
+<rect class="box" x="134" y="84" width="80" height="28" rx="7"/>
+<text class="code" x="174.0" y="102.5" text-anchor="middle">canary.55</text>
+<circle class="dot-line" cx="40" cy="138" r="5"/>
+<text class="code" x="54" y="142" text-anchor="start">fix</text>
+<rect class="box" x="134" y="124" width="80" height="28" rx="7"/>
+<text class="code" x="174.0" y="142.5" text-anchor="middle">canary.56</text>
+<circle class="dot-line" cx="40" cy="178" r="5"/>
+<text class="code" x="54" y="182" text-anchor="start">feat</text>
+<rect class="box" x="134" y="164" width="80" height="28" rx="7"/>
+<text class="code" x="174.0" y="182.5" text-anchor="middle">canary.57</text>
+<circle class="dot-line" cx="40" cy="218" r="5"/>
+<text class="code" x="54" y="222" text-anchor="start">fix</text>
+<rect class="box" x="134" y="204" width="80" height="28" rx="7"/>
+<text class="code" x="174.0" y="222.5" text-anchor="middle">canary.58</text>
+<circle class="dot" cx="40" cy="258" r="5"/>
+<text class="code-acc" x="54" y="262" text-anchor="start">Release PR</text>
+<rect class="box" x="134" y="244" width="80" height="28" rx="7"/>
+<text class="code" x="174.0" y="262.5" text-anchor="middle">canary.59</text>
+<rect class="box" x="224" y="84" width="80" height="148" rx="7"/>
+<text class="code" x="264.0" y="162.5" text-anchor="middle">0.11.0</text>
+<rect class="box-accent" x="224" y="244" width="80" height="28" rx="7"/>
+<text class="code-acc" x="264.0" y="262.5" text-anchor="middle">0.12.0</text>
+<text class="t3" x="168" y="302" text-anchor="middle">latest 只在 merge Release PR 時移動</text>
+</svg>
