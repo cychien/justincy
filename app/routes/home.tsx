@@ -1,7 +1,6 @@
 import { ArrowRightCircleIcon } from '@heroicons/react/16/solid';
 import { Link } from 'react-router';
 
-import { AuroraButton } from '~/components/AuroraButton';
 import { ARTICLE_SECTIONS } from '~/lib/articles';
 import { cn } from '~/lib/utils';
 
@@ -69,7 +68,6 @@ export default function Home() {
         </ul>
 
         <p className="pt-1">如果對我的 work 感興趣，歡迎找我聊聊 😊</p>
-        <AuroraButton href="#">聯絡我</AuroraButton>
       </div>
     </section>
   );
