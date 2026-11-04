@@ -591,8 +591,6 @@ gh release edit desktop-v0.1.2 --draft=true   # 壞的那版改回 draft
 
 ## 容易做錯的地方
 
-這些地方和直覺相反，做錯了不是流程跑不起來，就是不小心把版本發給使用者：
-
 - **trusted publisher 預設不能直接 publish。** 預設只允許 `npm stage publish`，要在 Allowed actions 勾 `npm publish`，CI 才能直接 Release。
 - **trusted publisher 設定 2 天內沒用過就會失效。** 設好之後要盡快成功 publish 一次。
 - **對已經存在的版本跑 `npm publish --dry-run` 會報錯。** 所以 dry run 時，stable job 要照 pending 的判斷跑，不能一律跑。

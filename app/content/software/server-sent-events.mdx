@@ -250,10 +250,15 @@ Client 重連時，`EventSource` 會自動帶上 `Last-Event-ID`，Server 據此
 
 ![上半部是一般做法：Server 先把訊息存進資料庫，再發布事件到 Broker；如果在這兩步之間掛掉，事件就不會送出。下半部是 Transactional Outbox：訊息和待發布事件寫在同一個 transaction，由背景程式讀取、發布到 Broker，再標記為已發布。](/images/software/server-sent-events/outbox.svg)
 
-## 給 AI agent 的實作指南
+## 容易做錯的地方
 
-SSE 的格式幾行就能寫完，真正花功夫的是上線之後：連線分散在多台 Server、重啟時的重連風暴、斷線期間漏掉的事件。用 SSE 時，逐項確認：
-
-- 盡量遵守 SSE 規範，不管有沒有自訂 parser。
-- 環境有 `EventSource`、也沒撞到它的限制，就預設用它。否則要自己補上 `EventSource` 內建的功能：事件解析、錯誤處理、斷線重連、`retry`、`Last-Event-ID`。
-- 對照上面 Scalability、Availability、Reliability 的注意事項逐一檢查。
+- **`EventSource` 遇到某些錯誤會直接放棄。** 連線時狀態碼不是 200，或 `Content-Type` 不是 `text/event-stream`，它就變成 `CLOSED`，不再重連。要重試得在 `onerror` 裡自己建一個新的。
+- **`EventSource` 只能發 `GET`、不能自訂 header。** 用 `Authorization` header 驗證的 API 用不了，要改用 `fetch` 讀串流，並自己補上解析、重連、`retry`、`Last-Event-ID`。
+- **有名稱的事件不會進 `onmessage`。** 帶了 `event:` 的事件，要用 `addEventListener` 監聽。
+- **事件要等空白行才送出。** 少了結尾的空白行，瀏覽器不會觸發這個事件。
+- **proxy 會把回應緩衝起來。** 有些 proxy 或平台要等 response 結束才交給 Client，SSE 會完全收不到。上線前確認整條路徑都支援串流，並調高連線 timeout。
+- **HTTP/1.1 下每個網域只能開約 6 條連線。** 使用者多開幾個分頁就會卡住，改用 HTTP/2，或讓分頁共用一條連線。
+- **多台 Server 時，事件要送到持有連線的那台。** 透過 Broker 廣播，每個 process 只開一條 Broker 連線，不要為每個使用者各開一條。
+- **固定的 `retry` 會造成重連風暴。** Server 重啟時所有 Client 會同時重連，每條連線送一個隨機的 `retry` 就能分散開。
+- **斷線期間的事件要能補送。** 事件先存進資料庫再廣播，Client 重連時依 `Last-Event-ID` 補送；需要更可靠時用 Transactional Outbox。
+- **慢的 Client 會吃光 Server 記憶體。** 每條連線的待送佇列要設上限，超過就暫停或關閉連線，讓 Client 重連後再補送。
