@@ -63,6 +63,17 @@ date: 2026-10-06
 
 封面和 OG image 由 `blog-cover` skill 產生（`.agents/skills/blog-cover/`）。在 Claude Code 或 Codex 裡說「幫這篇做 cover」即可；它會用 Codex 的 `image_gen` 生圖、套上網站統一的 zinc 色調、用模板做 OG image，再把 `thumb`、`thumbAlt`、`ogImage` 寫進 frontmatter。候選圖和工作檔在 `tmp/blog-cover/<檔名>/`，不進 git。
 
+### 給 AI agent 讀的 Markdown 版本
+
+每篇軟體白話文都會自動產生 Markdown 版本，給 agent 讀，不用另外寫。要納入的區塊列在 `app/lib/articles.ts` 的 `AGENT_MARKDOWN_SECTIONS`，目前只有 `software`：
+
+- `/<區塊>/<檔名>.md`：文章的 Markdown 原文，YouTube 元件會轉成連結。文章頁的 `<head>` 有 `<link rel="alternate" type="text/markdown">` 指向它。
+- `/llms.txt`：所有文章的索引，每篇一行：標題、`.md` 連結和 `description`。agent 先讀這份索引，再挑要讀的文章。
+
+由 `plugins/agent-markdown.ts` 產生：`pnpm build` 時寫成靜態檔，`pnpm dev` 時每次請求即時產生。草稿只在 dev 出現。`description` 是 agent 判斷要不要讀這篇的依據，建議每篇都寫。
+
+標題會自動帶 id（`rehype-slug`），可以用 `/software/release-flow#標題` 連到文章的某一節。
+
 ### 插入圖片
 
 ```bash

@@ -6,6 +6,7 @@ import { SeriesNav } from '~/components/SeriesNav';
 import { SeriesPager } from '~/components/SeriesPager';
 import { YouTube } from '~/components/YouTube';
 import {
+  AGENT_MARKDOWN_SECTIONS,
   isArticleSection,
   isVisible,
   seriesPartTitle,
@@ -146,6 +147,16 @@ export function meta({ loaderData }: Route.MetaArgs) {
   const { description, ogImage } = loaderData.frontmatter;
   return [
     { title: `${title} - justincy` },
+    ...(AGENT_MARKDOWN_SECTIONS.includes(loaderData.section)
+      ? [
+          {
+            tagName: 'link',
+            rel: 'alternate',
+            type: 'text/markdown',
+            href: `/${loaderData.section}/${loaderData.slug}.md`,
+          },
+        ]
+      : []),
     { property: 'og:title', content: title },
     { property: 'og:type', content: 'article' },
     ...(description
