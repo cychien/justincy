@@ -5,8 +5,14 @@ export const ARTICLE_SECTIONS = {
 
 export type ArticleSection = keyof typeof ARTICLE_SECTIONS;
 
-/** Sections served as raw Markdown at /<section>/<slug>.md and listed in /llms.txt. */
+/** Sections served as raw Markdown and listed in /llms.txt. */
 export const AGENT_MARKDOWN_SECTIONS: ArticleSection[] = ['software'];
+
+// Under /md rather than /<section>: a static directory named like a route makes the
+// static server redirect that route's index to a trailing slash.
+export function agentMarkdownPath(section: ArticleSection, slug: string): string {
+  return `/md/${section}/${slug}.md`;
+}
 
 export function isArticleSection(value: string): value is ArticleSection {
   return Object.hasOwn(ARTICLE_SECTIONS, value);

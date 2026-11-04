@@ -1,4 +1,5 @@
 import { format, parseISO } from 'date-fns';
+import { redirect } from 'react-router';
 
 import { DraftBadge } from '~/components/DraftBadge';
 import { KindSeparator } from '~/components/KindSeparator';
@@ -7,6 +8,7 @@ import { SeriesPager } from '~/components/SeriesPager';
 import { YouTube } from '~/components/YouTube';
 import {
   AGENT_MARKDOWN_SECTIONS,
+  agentMarkdownPath,
   isArticleSection,
   isVisible,
   seriesPartTitle,
@@ -111,6 +113,12 @@ const PROSE = `
 
 export function loader({ params, request }: Route.LoaderArgs) {
   const { section, slug } = params;
+  if (isArticleSection(section) && AGENT_MARKDOWN_SECTIONS.includes(section)) {
+    const markdownSlug = slug.match(/^(.+)\.md$/)?.[1];
+    if (markdownSlug && posts.has(postKey(section, markdownSlug))) {
+      throw redirect(agentMarkdownPath(section, markdownSlug));
+    }
+  }
   const post = posts.get(postKey(section, slug));
   if (!post || !isArticleSection(section) || !isVisible(post.frontmatter)) {
     throw new Response('找不到這篇文章', { status: 404 });
@@ -153,7 +161,7 @@ export function meta({ loaderData }: Route.MetaArgs) {
             tagName: 'link',
             rel: 'alternate',
             type: 'text/markdown',
-            href: `/${loaderData.section}/${loaderData.slug}.md`,
+            href: agentMarkdownPath(loaderData.section, loaderData.slug),
           },
         ]
       : []),

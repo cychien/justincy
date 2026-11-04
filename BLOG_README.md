@@ -67,7 +67,7 @@ date: 2026-10-06
 
 每篇軟體白話文都會自動產生 Markdown 版本，給 agent 讀，不用另外寫。要納入的區塊列在 `app/lib/articles.ts` 的 `AGENT_MARKDOWN_SECTIONS`，目前只有 `software`：
 
-- `/<區塊>/<檔名>.md`：文章的 Markdown 原文，YouTube 元件會轉成連結。文章頁的 `<head>` 有 `<link rel="alternate" type="text/markdown">` 指向它。
+- `/md/<區塊>/<檔名>.md`：文章的 Markdown 原文，YouTube 元件會轉成連結。文章頁的 `<head>` 有 `<link rel="alternate" type="text/markdown">` 指向它；`/<區塊>/<檔名>.md` 會 redirect 到這裡。不放在 `/<區塊>/` 底下，是因為和路由同名的靜態目錄會讓 `/<區塊>` 被導向 `/<區塊>/`。
 - `/llms.txt`：所有文章的索引，每篇一行：標題、`.md` 連結和 `description`。agent 先讀這份索引，再挑要讀的文章。
 
 由 `plugins/agent-markdown.ts` 產生：`pnpm build` 時寫成靜態檔，`pnpm dev` 時每次請求即時產生。草稿只在 dev 出現。`description` 是 agent 判斷要不要讀這篇的依據，建議每篇都寫。

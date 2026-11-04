@@ -5,6 +5,7 @@ import type { Plugin } from 'vite';
 import { parse as parseYaml } from 'yaml';
 
 import {
+  agentMarkdownPath,
   ARTICLE_SECTIONS,
   seriesPartTitle,
   type ArticleFrontmatter,
@@ -64,10 +65,6 @@ function toMarkdown({ frontmatter, body }: SourceArticle): string {
   return `${header.filter(Boolean).join('\n\n')}\n\n${content.trim()}\n`;
 }
 
-function markdownPath({ section, slug }: SourceArticle): string {
-  return `${section}/${slug}.md`;
-}
-
 function toLlmsTxt(articles: SourceArticle[], sections: ArticleSection[]): string {
   const blocks = sections.map((section) => {
     const lines = articles
@@ -75,20 +72,17 @@ function toLlmsTxt(articles: SourceArticle[], sections: ArticleSection[]): strin
       .sort((a, b) => b.frontmatter.date.localeCompare(a.frontmatter.date))
       .map((article) => {
         const { description } = article.frontmatter;
-        const link = `[${displayTitle(article.frontmatter)}](/${markdownPath(article)})`;
+        const link = `[${displayTitle(article.frontmatter)}](${agentMarkdownPath(article.section, article.slug)})`;
         return `- ${link}${description ? `: ${description}` : ''}`;
       });
     return `## ${ARTICLE_SECTIONS[section].title}\n\n${ARTICLE_SECTIONS[section].description}\n\n${lines.join('\n')}`;
   });
-  const intro = [
-    '# justincy',
-    '> Justin 的個人網站。下面每篇文章都有 Markdown 版本：文章網址加上 .md。',
-  ];
+  const intro = ['# justincy', '> Justin 的個人網站。下面的連結是各篇文章的 Markdown 版本。'];
   return `${[...intro, ...blocks].join('\n\n')}\n`;
 }
 
 /**
- * Serves the chosen sections' articles as raw Markdown at /<section>/<slug>.md and lists them in
+ * Serves the chosen sections' articles as raw Markdown under /md and lists them in
  * /llms.txt, so an agent can read the index first and fetch only the posts it needs.
  * Build emits static files, which react-router-serve answers before the router does;
  * dev answers from source on each request.
@@ -103,7 +97,9 @@ export function agentMarkdown(options: Options): Plugin {
         if (url !== '/llms.txt' && !url?.endsWith('.md')) return next();
 
         const articles = readArticles(options, true);
-        const article = articles.find((candidate) => `/${markdownPath(candidate)}` === url);
+        const article = articles.find(
+          (candidate) => agentMarkdownPath(candidate.section, candidate.slug) === url
+        );
         if (url !== '/llms.txt' && !article) return next();
 
         res.setHeader(
@@ -120,7 +116,7 @@ export function agentMarkdown(options: Options): Plugin {
       for (const article of articles) {
         this.emitFile({
           type: 'asset',
-          fileName: markdownPath(article),
+          fileName: agentMarkdownPath(article.section, article.slug).slice(1),
           source: toMarkdown(article),
         });
       }
